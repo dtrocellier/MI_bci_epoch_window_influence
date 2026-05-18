@@ -1,0 +1,10 @@
+mne
+pandas
+numpy
+wandb
+scikit-learn
+torch
+torchsummary
+tqdm
+scipy
+braindecode
