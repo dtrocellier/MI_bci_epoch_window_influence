@@ -1,8 +1,8 @@
 import mne
-from pathlib import Path
 import os
 import os.path as osp
 import numpy as np
+import moabb
 from tqdm import tqdm
 import torch
 
@@ -27,6 +27,8 @@ def read_data(init_path):
         list_participant.sort()
 
     print("Successfully accessed directory:", init_path)
+    print(files_dir)
+    print(participant_dir)
     return participant_dir, files_dir
 
 
@@ -35,30 +37,24 @@ def collect_data(files_dir, participant_dir, init_path):
 
     for i in range(len(files_dir)):
         for j in range(len(participant_dir[i])):
-            participant = participant_dir[i][j].split("_")[0]
             dic_data[participant_dir[i][j] + "_1"] = mne.io.read_raw_gdf(
-                Path(init_path) / participant / f"{participant}_R1_acquisition.gdf", verbose="CRITICAL")
+                osp.join(init_path, files_dir[i], participant_dir[i][j], participant_dir[i][j] + "_R1_acquisition.gdf"), verbose="CRITICAL")
             dic_data[participant_dir[i][j] + "_2"] = mne.io.read_raw_gdf(
-                Path(init_path) / participant / f"{participant}_R2_acquisition.gdf", verbose="CRITICAL")
+                osp.join(init_path, files_dir[i], participant_dir[i][j], participant_dir[i][j] + "_R2_acquisition.gdf"), verbose="CRITICAL")
             dic_data[participant_dir[i][j] + "_3"] = mne.io.read_raw_gdf(
-                Path(init_path) / participant / f"{participant}_R3_onlineT.gdf", verbose="CRITICAL")
+                osp.join(init_path, files_dir[i], participant_dir[i][j], participant_dir[i][j] + "_R3_onlineT.gdf"), verbose="CRITICAL")
             dic_data[participant_dir[i][j] + "_4"] = mne.io.read_raw_gdf(
-                Path(init_path) / participant / f"{participant}_R4_onlineT.gdf", verbose="CRITICAL")
-
+                osp.join(init_path, files_dir[i], participant_dir[i][j], participant_dir[i][j] + "_R4_onlineT.gdf"), verbose="CRITICAL")
             try:
                 dic_data[participant_dir[i][j] + "_5"] = mne.io.read_raw_gdf(
-                    Path(init_path) / participant / f"{participant}_R5_onlineT.gdf", verbose="CRITICAL")
+                    osp.join(init_path, files_dir[i], participant_dir[i][j], participant_dir[i][j] + "_R5_onlineT.gdf"), verbose="CRITICAL")
             except FileNotFoundError:
-                print(f"File not found for participant {participant} and session R5_onlineT")
                 pass
-
             try:
                 dic_data[participant_dir[i][j] + "_6"] = mne.io.read_raw_gdf(
-                    Path(init_path) / participant / f"{participant}_R6_onlineT.gdf", verbose="CRITICAL")
+                    osp.join(init_path, files_dir[i], participant_dir[i][j], participant_dir[i][j] + "_R6_onlineT.gdf"), verbose="CRITICAL")
             except FileNotFoundError:
-                print(f"File not found for participant {participant} and session R6_onlineT")
                 pass
-
     return dic_data
 
 
@@ -113,16 +109,6 @@ out_path  = DATA_PATH + "Big_dataset"
 os.makedirs(out_path, exist_ok=True)
 
 participant_dir, files_dir = read_data(init_path)
-
-print(participant_dir)
-print(files_dir)
-
-participant_dir = participant_dir[:10]
-files_dir = files_dir[:10]
-
-print(participant_dir)
-print(files_dir)
-
 dic_data = collect_data(files_dir, participant_dir, init_path)
 session  = [subj for sess in participant_dir for subj in sess]
 

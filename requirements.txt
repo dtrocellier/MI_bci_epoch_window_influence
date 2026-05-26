@@ -8,3 +8,4 @@ torchsummary
 tqdm
 scipy
 braindecode
+moabb

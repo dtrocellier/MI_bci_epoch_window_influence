@@ -1,6 +1,6 @@
 # Experiment dimensions — NOT W&B sweep parameters
 MODELS        = ['Deep4Net']           # extend here to add models
-DATASETS      = ['Large']             # extend here to add datasets
+DATASETS      = ['Dreyer2023', 'Lee2019_MI']             # extend here to add datasets
 EPOCH_WINDOWS = [(0, 4), (0.5, 4.5)]  # (tmin, tmax) pairs
 
 
