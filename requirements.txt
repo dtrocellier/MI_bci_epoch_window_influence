@@ -7,5 +7,6 @@ torch
 torchsummary
 tqdm
 scipy
-braindecode
-moabb
+braindecode[hub]
+moabb==1.4.3
+pyyaml

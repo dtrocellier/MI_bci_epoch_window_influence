@@ -1,0 +1,29 @@
+defaults:
+  - dataset: Dreyer2023
+  - model: Deep4Net
+  - epoch_window: w_00_40
+  - _self_
+seed: 2002012
+subject: 1
+wandb:
+  #mode: online
+  mode: disabled
+  project: Leave_one_out_window_influence
+
+split:
+  test_size: 0.2
+  random_state: 42
+
+filter:
+  - 0.5
+  - 40
+
+MOABB:
+  cache_config:
+    use: True
+    save_raw: False
+
+path:
+  save_perf_path: "Results/perf_benchmark.csv"
+
+debug: true

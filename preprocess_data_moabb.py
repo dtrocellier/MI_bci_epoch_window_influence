@@ -1,166 +1,206 @@
 import mne
 import os
-import os.path as osp
+import json
+from pathlib import Path
 import numpy as np
-import moabb
-from tqdm import tqdm
-import torch
+import importlib
+import yaml
 
-import pickle
+from src.utils import load_config, window_suffix
 
-from config import EPOCH_WINDOWS, DATA_PATH, window_suffix
-from src.utils import preprocess
-
-os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
-mne.set_log_level(verbose="Warning")
+mne.set_log_level(verbose="CRITICAL")
 
 
-def read_data(init_path):
-    files_dir = os.listdir(init_path)
-    for file in files_dir:
-        if "." in file:
-            files_dir.remove(file)
-    files_dir.sort()
-
-    participant_dir = [os.listdir(osp.join(init_path, files_dir[i])) for i in range(len(files_dir))]
-    for list_participant in participant_dir:
-        list_participant.sort()
-
-    print("Successfully accessed directory:", init_path)
-    print(files_dir)
-    print(participant_dir)
-    return participant_dir, files_dir
+def preprocess_raw(raw):
+    config = load_config()
+    FILTER = config["filter"]
+    raw.load_data()
+    raw.pick(picks="eeg")
+    raw.filter(l_freq=FILTER[0], h_freq=FILTER[1])
+    return raw
 
 
-def collect_data(files_dir, participant_dir, init_path):
-    dic_data = {}
+def _split_data(X, y, block_size):
+    I_0 = np.where(y == 0)[0]
+    I_1 = np.where(y == 1)[0]
 
-    for i in range(len(files_dir)):
-        for j in range(len(participant_dir[i])):
-            dic_data[participant_dir[i][j] + "_1"] = mne.io.read_raw_gdf(
-                osp.join(init_path, files_dir[i], participant_dir[i][j], participant_dir[i][j] + "_R1_acquisition.gdf"), verbose="CRITICAL")
-            dic_data[participant_dir[i][j] + "_2"] = mne.io.read_raw_gdf(
-                osp.join(init_path, files_dir[i], participant_dir[i][j], participant_dir[i][j] + "_R2_acquisition.gdf"), verbose="CRITICAL")
-            dic_data[participant_dir[i][j] + "_3"] = mne.io.read_raw_gdf(
-                osp.join(init_path, files_dir[i], participant_dir[i][j], participant_dir[i][j] + "_R3_onlineT.gdf"), verbose="CRITICAL")
-            dic_data[participant_dir[i][j] + "_4"] = mne.io.read_raw_gdf(
-                osp.join(init_path, files_dir[i], participant_dir[i][j], participant_dir[i][j] + "_R4_onlineT.gdf"), verbose="CRITICAL")
-            try:
-                dic_data[participant_dir[i][j] + "_5"] = mne.io.read_raw_gdf(
-                    osp.join(init_path, files_dir[i], participant_dir[i][j], participant_dir[i][j] + "_R5_onlineT.gdf"), verbose="CRITICAL")
-            except FileNotFoundError:
-                pass
-            try:
-                dic_data[participant_dir[i][j] + "_6"] = mne.io.read_raw_gdf(
-                    osp.join(init_path, files_dir[i], participant_dir[i][j], participant_dir[i][j] + "_R6_onlineT.gdf"), verbose="CRITICAL")
-            except FileNotFoundError:
-                pass
-    return dic_data
+    assert (
+        I_0.shape[0] == I_1.shape[0]
+    ), "Number of trials for class 0 and class 1 should be equal"
+    assert (
+        I_0.shape[0] % block_size == 0
+    ), f"Number of trials for class 0 and class 1 should be divisible by {block_size}"
 
+    I_0 = I_0.reshape(-1, block_size)
+    I_1 = I_1.reshape(-1, block_size)
 
-def extract_keys(all_subject):
-    keys = []
-    for subj in all_subject:
-        if subj == "A59":
-            keys += [subj + "_" + str(i) for i in range(1, 5)]
-        else:
-            keys += [subj + "_" + str(i) for i in range(1, 7)]
-    return keys
+    X_list, y_list = [], []
+
+    for i_0, i_1 in zip(I_0, I_1):
+        I = np.concatenate([i_0, i_1])
+        I = np.sort(I)
+        X_list.append(X[I])
+        y_list.append(y[I])
+
+    return X_list, y_list
 
 
+def _save_data(X, y, save_base, suffix, dataset_name, subject, session_num, run_num):
+    if dataset_name == "Lee2019_MI":
 
-def epoching(dic_data, key_subject=[], steps_epoching=None, key_events={"769": 0, "770": 1}):
-    tmin              = steps_epoching["tmin"]
-    tmax              = steps_epoching["tmax"]
-    n_events_per_trial = steps_epoching["n_events_per_trial"]
+        X_list, y_list = _split_data(X, y, 5)
 
-    X_list = []
-    Y_list = []
-    for key_s in tqdm(key_subject, desc="epoching"):
-        X = []
-        Y = []
-        for key in extract_keys([key_s]):
-            epoch = mne.Epochs(
-                dic_data[key],
-                mne.events_from_annotations(dic_data[key], key_events)[0],
-                tmin=-1, tmax=5, baseline=(None, 0)
+        for run_idx, (X, y) in enumerate(zip(X_list, y_list)):
+            np.save(
+                save_base
+                / f"sub-{subject}_ses-{session_num}_run-{run_idx + 1}_X_{suffix}.npy",
+                X,
             )
-            X.append(epoch.get_data(tmin=tmin, tmax=tmax))
-            Y.append(epoch.events[:, 2])
-        X_list.append(X)
-        Y_list.append(Y)
-    return X_list, Y_list
+
+            np.save(
+                save_base
+                / f"sub-{subject}_ses-{session_num}_run-{run_idx + 1}_y_{suffix}.npy",
+                y,
+            )
+
+    else:
+        np.save(
+            save_base / f"sub-{subject}_ses-{session_num}_run-{run_num}_X_{suffix}.npy",
+            X,
+        )
+
+        np.save(
+            save_base / f"sub-{subject}_ses-{session_num}_run-{run_num}_y_{suffix}.npy",
+            y,
+        )
 
 
-def prepro_Y_s(Y_):
-    Y_list = []
-    for Y_sub in Y_:
-        Y_list_sub = []
-        for Y_sess in Y_sub:
-            Y_list_sub.append(torch.from_numpy(Y_sess).long())
-        Y_list.append(Y_list_sub)
-    return Y_list
+def export_epochs(dataset, dataset_name, tmin, tmax, sfreq, save_base, suffix):
+    config = load_config()
+    for subject in dataset.subject_list:
+        data = dataset.get_data(
+            subjects=[subject], cache_config=config["MOABB"]["cache_config"]
+        )[subject]
+        for session_idx, (session_name, session_data) in enumerate(data.items()):
+            for run_idx, (run_name, run_raw) in enumerate(session_data.items()):
+                print(
+                    f"Exporting data for subject {subject}, session {session_idx + 1}, run {run_idx + 1}"
+                )
+                run_raw = preprocess_raw(run_raw)
+
+                events, event_id = mne.events_from_annotations(
+                    run_raw, {"left_hand": 0, "right_hand": 1}
+                )
+
+                epochs = mne.Epochs(
+                    run_raw,
+                    events=events,
+                    event_id=event_id,
+                    tmin=-1,
+                    tmax=5,
+                    baseline=(None, 0),
+                )
+
+                if sfreq is not None:
+                    epochs.load_data()
+                    epochs = epochs.resample(sfreq)
+
+                X = epochs.get_data(tmin=tmin, tmax=tmax)
+                y = epochs.events[:, 2]
+
+                _save_data(
+                    X=X,
+                    y=y,
+                    save_base=save_base,
+                    suffix=suffix,
+                    dataset_name=dataset_name,
+                    subject=subject,
+                    session_num=session_idx + 1,
+                    run_num=run_idx + 1,
+                )
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
+def export_meta_data(dataset, save_base, subject=1):
+    data = dataset.get_data(subjects=[subject], cache_config={"use": True})[subject]
+    for session_name, session_data in data.items():
+        for run_name, run_raw in session_data.items():
+            run_raw = preprocess_raw(run_raw)
+            ch_names = run_raw.ch_names
+            sfreq = run_raw.info["sfreq"]
 
-init_path = DATA_PATH + "Big_dataset"
-out_path  = DATA_PATH + "Big_dataset"
-os.makedirs(out_path, exist_ok=True)
+            meta_data = {
+                "ch_names": ch_names,
+                "sfreq": sfreq,
+            }
 
-participant_dir, files_dir = read_data(init_path)
-dic_data = collect_data(files_dir, participant_dir, init_path)
-session  = [subj for sess in participant_dir for subj in sess]
+            with open(save_base / f"meta_data.json", "w") as f:
+                json.dump(meta_data, f)
 
-# Preprocessing is window-independent: apply once
-steps_preprocess = {
-    "filter": [0.5, 40],
-    "drop_channels": ['EOG1', 'EOG2', 'EOG3', 'EMGg', 'EMGd'],
-}
-for raw in tqdm(dic_data.values(), desc="preprocess"):
-    preprocess(raw, steps_preprocess)
+            break
+        break
 
-# Save channel names once (same for all windows)
-last_raw = next(iter(dic_data.values()))
-with open(out_path + '/channels.pkl', "wb") as f:
-    pickle.dump(last_raw.info.ch_names, f)
 
-# Save order once
-with open(out_path + '/order.pkl', "wb") as f:
-    pickle.dump(session, f)
+def load_yaml(files, base):
+    yaml_list = []
+    for file in files:
+        if file.endswith(".yaml"):
+            with open(base / file, "r") as f:
+                yaml_list.append(yaml.safe_load(f))
+    return yaml_list
 
-# Loop over epoch windows defined in config.py
-for tmin, tmax in EPOCH_WINDOWS:
-    suffix = window_suffix(tmin, tmax)
-    print(f"\n=== Epoch window: tmin={tmin}s  tmax={tmax}s  (suffix: {suffix}) ===")
 
-    steps_epoching = {
-        "tmin": tmin,
-        "tmax": tmax,
-        "overlap": 1,
-        "lenght": tmax - tmin,
-        "n_events_per_trial": 40,
-        "one_hot": False,
+def parse_config():
+    conf_base = Path("conf")
+
+    # dataset_list
+    datasets = os.listdir(conf_base / "dataset")
+    datasets = [dataset.split(".")[0] for dataset in datasets]
+
+    # sfreq_list
+    files = os.listdir(conf_base / "model")
+    models = load_yaml(files, conf_base / "model")
+    sfreq_list = [model["sfreq"] for model in models]
+
+    # epoch_windows
+    files = os.listdir(conf_base / "dataset")
+    ds_yaml_list = load_yaml(files, conf_base / "dataset")
+    epoch_windows = {
+        f"{ds_yaml['name']}": ds_yaml["epoch_windows"] for ds_yaml in ds_yaml_list
     }
 
-    X, Y = epoching(dic_data, session, steps_epoching)
+    return datasets, sfreq_list, epoch_windows
 
-    with open(out_path + f'/X_npy_{suffix}.pkl', "wb") as f:
-        pickle.dump(X, f)
-    with open(out_path + f'/Y_npy_{suffix}.pkl', "wb") as f:
-        pickle.dump(Y, f)
 
-    list_xs = [[torch.from_numpy(sess).float() for sess in sub] for sub in X]
-    list_ys = prepro_Y_s(Y)
+if __name__ == "__main__":
 
-    torch.save(list_xs, out_path + f'/X_s_{suffix}.pt')
-    torch.save(list_ys, out_path + f'/Y_s_{suffix}.pt')
+    DATASETS, SFREQ, EPOCH_WINDOWS = parse_config()
 
-    list_x = [torch.cat(sublist) for sublist in list_xs]
-    list_y = [torch.cat(sublist) for sublist in list_ys]
-    torch.save(list_x, out_path + f'/X_{suffix}.pt')
-    torch.save(list_y, out_path + f'/Y_{suffix}.pt')
+    DATASETS = ["Dreyer2023"]
 
-    print(f"Saved X_s_{suffix}.pt, Y_s_{suffix}.pt to {out_path}")
+    for dataset_name in DATASETS:
+        save_base = Path("Dataset") / dataset_name
+        save_base.mkdir(exist_ok=True)
 
-print("\nDone preprocessing all windows.")
+        module = importlib.import_module("moabb.datasets")
+        dataset = getattr(module, dataset_name)()
+
+        export_meta_data(dataset, save_base)
+
+        for sfreq in SFREQ:
+            for tmin, tmax in EPOCH_WINDOWS[dataset_name]:
+                suffix = window_suffix(tmin, tmax, sfreq)
+                print(
+                    f"\n=== {dataset_name} Epoch window: tmin={tmin}s  tmax={tmax}s  (suffix: {suffix}) ==="
+                )
+
+                export_epochs(
+                    dataset=dataset,
+                    dataset_name=dataset_name,
+                    tmin=tmin,
+                    tmax=tmax,
+                    sfreq=sfreq,
+                    save_base=save_base,
+                    suffix=suffix,
+                )
+
+    print("\nDone preprocessing all windows.")
