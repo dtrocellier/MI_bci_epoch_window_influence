@@ -4,6 +4,7 @@ Results/
 __pycache__/
 *.pyc
 .idea/
+*.pt
 outputs/
 multirun/
 logs/
