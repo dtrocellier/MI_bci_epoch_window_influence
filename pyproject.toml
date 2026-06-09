@@ -24,6 +24,7 @@ dependencies = [
     "jupyter",
     "ipykernel",
     "black",
+    "captum",
 ]
 
 [tool.uv.sources]

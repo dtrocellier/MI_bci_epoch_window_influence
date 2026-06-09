@@ -16,6 +16,7 @@ from src.utils import (
     validate,
     set_seed,
     save_results,
+    compute_attributions,
 )
 
 
@@ -116,16 +117,37 @@ def run(cfg):
         test_loss, test_acc = validate(model, test_loader, criterion, device=device)
         wandb.log({"test_loss": test_loss, "test_accuracy": test_acc})
 
+        attributions = {}
+        attributions[0] = compute_attributions(
+            model, test_loader, cfg, target=0, device=device
+        )
+        attributions[1] = compute_attributions(
+            model, test_loader, cfg, target=1, device=device
+        )
+
+        # attribution_base = Path("attribution")
+        attribution_base = Path(
+            "/media/skojima/41e27c66-4999-42a0-b36f-cc19d7881326/david/attribution"
+        )
+        attribution_base.mkdir(exist_ok=True, parents=True)
+        fname = (
+            attribution_base
+            / f"{cfg.model.name}_{cfg.dataset.name}_{cfg.epoch_window.name}_{cfg.subject}.pt"
+        )
+        torch.save(attributions, fname)
+
         save_results(cfg, test_acc)
         print(
             f"Done: {cfg.model.name} | {cfg.dataset.name} | {cfg.epoch_window.name} | subject {cfg.subject} → {test_acc:.4f}"
         )
 
 
-@hydra.main(version_base=None, config_path="conf_debug", config_name="config")
+@hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg):
-    print(cfg)
-    exit()
+    if cfg.subject in cfg.dataset.subjects.exclude:
+        print(f"subject: {cfg.subject} is excluded.")
+        return
+
     set_seed(cfg.seed)
     run(cfg)
 

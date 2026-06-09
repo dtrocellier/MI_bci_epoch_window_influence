@@ -6,8 +6,8 @@ defaults:
 seed: 2002012
 subject: 1
 wandb:
-  #mode: online
-  mode: disabled
+  mode: offline
+  #mode: disabled
   project: Leave_one_out_window_influence
 
 split:

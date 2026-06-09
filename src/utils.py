@@ -1,16 +1,17 @@
-import numpy as np
-from pathlib import Path
 import importlib
-import torch
-import random
-import os
-import pandas as pd
-import math
-from torch.utils.data import DataLoader, Dataset
 import json
-import yaml
+import math
+import os
+import random
+from pathlib import Path
 
+import numpy as np
+import pandas as pd
+import torch
+import yaml
+from captum.attr import Saliency
 from sklearn.model_selection import train_test_split
+from torch.utils.data import DataLoader, Dataset
 
 
 def load_config():
@@ -334,9 +335,14 @@ def build_model(cfg):
 def build_optimizer(model, cfg_optimizer):
     module = importlib.import_module(cfg_optimizer.module)
 
+    if cfg_optimizer.kwargs is None:
+        kwargs = {}
+    else:
+        kwargs = cfg_optimizer.kwargs
+
     optimizer = getattr(module, cfg_optimizer.name)(
         filter(lambda p: p.requires_grad, model.parameters()),
-        **cfg_optimizer.kwargs,
+        **kwargs,
     )
     return optimizer
 
@@ -458,3 +464,104 @@ def save_results(cfg, accuracy):
         )
 
     df.to_csv(csv_path, index=False)
+
+
+def get_data_from_loader(loader):
+    X_list = []
+    y_list = []
+    pos_list = []
+
+    for idx, batch in enumerate(loader):
+
+        if len(batch) == 3:
+            X, y, pos = batch
+        else:
+            X, y = batch
+            pos = None
+
+        X_list.append(X)
+        pos_list.append(pos)
+        y_list.append(y)
+
+    X = torch.concat(X_list, dim=0)
+    y = torch.concat(y_list, dim=0)
+
+    if pos_list[0] is not None:
+        pos = torch.concat(pos_list, dim=0)
+    else:
+        pos = None
+
+    return X, y, pos
+
+
+def compute_attributions(
+    model, test_loader, cfg, target=None, baseline=None, device="cpu"
+):
+    X, y, pos = get_data_from_loader(test_loader)
+
+    model.eval()
+
+    X.to(device)
+    y.to(device)
+    X = X.to(device).detach().clone().requires_grad_(True)
+
+    if pos is not None:
+        pos.to(device)
+
+    with torch.no_grad():
+        logits = model(X)
+        if target is None:
+            if logits.ndim == 2:
+                target = logits.argmax(dim=1)
+            else:
+                target = None
+
+    saliency = Saliency(model)
+    # ig = IntegratedGradients(model)
+    # dl = DeepLift(model)
+
+    if pos is None:
+        attr_saliency = saliency.attribute(
+            X,
+            target=target,
+            abs=True,
+        )
+        """
+        attr_ig = ig.attribute(
+            X,
+            baselines=baseline,
+            target=target,
+        )
+        attr_dl = dl.attribute(
+            X,
+            baselines=baseline,
+            target=target,
+        )
+        """
+    else:
+        attr_saliency = saliency.attribute(
+            X,
+            target=target,
+            abs=True,
+            additional_forward_args=(pos,),
+        )
+        """
+        attr_ig = ig.attribute(
+            X,
+            baselines=baseline,
+            target=target,
+            additional_forward_args=(pos,),
+        )
+        attr_dl = dl.attribute(
+            X,
+            baselines=baseline,
+            target=target,
+            additional_forward_args=(pos,),
+        )
+        """
+
+    return {
+        "saliency": attr_saliency.detach().cpu(),
+        # "integrated_gradients": attr_ig.detach().cpu(),
+        # "deeplift": attr_dl.detach().cpu(),
+    }

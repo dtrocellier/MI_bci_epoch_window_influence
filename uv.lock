@@ -266,6 +266,22 @@ hub = [
 ]
 
 [[package]]
+name = "captum"
+version = "0.9.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "matplotlib", marker = "sys_platform == 'linux'" },
+    { name = "numpy", marker = "sys_platform == 'linux'" },
+    { name = "packaging", marker = "sys_platform == 'linux'" },
+    { name = "torch", marker = "sys_platform == 'linux'" },
+    { name = "tqdm", marker = "sys_platform == 'linux'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f7/9e/f31758e20c3d2b42b05420936b75f663e7aeae9ba63b84aee5cad1b044a3/captum-0.9.0.tar.gz", hash = "sha256:e4868e22b68224f1a5355d2b7966803c021cf9fe5d893f51f587b4002a666b54", size = 363381, upload-time = "2026-04-17T06:11:39.577Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/01/75/c99571fee171bb9d34d3e1df5fdb16d57e2c4c15339eb220e6e6e4539f1c/captum-0.9.0-py3-none-any.whl", hash = "sha256:cda38e1d42c37591d71560bb2f5813ac4cae8d8543afac45279c7efd5945997e", size = 455196, upload-time = "2026-04-17T06:11:38.229Z" },
+]
+
+[[package]]
 name = "certifi"
 version = "2026.5.20"
 source = { registry = "https://pypi.org/simple" }
@@ -1275,6 +1291,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "black", marker = "sys_platform == 'linux'" },
     { name = "braindecode", extra = ["hub"], marker = "sys_platform == 'linux'" },
+    { name = "captum", marker = "sys_platform == 'linux'" },
     { name = "hydra-core", marker = "sys_platform == 'linux'" },
     { name = "ipykernel", marker = "sys_platform == 'linux'" },
     { name = "jupyter", marker = "sys_platform == 'linux'" },
@@ -1297,6 +1314,7 @@ dependencies = [
 requires-dist = [
     { name = "black" },
     { name = "braindecode", extras = ["hub"] },
+    { name = "captum" },
     { name = "hydra-core" },
     { name = "ipykernel" },
     { name = "jupyter" },

@@ -175,11 +175,12 @@ if __name__ == "__main__":
 
     DATASETS, SFREQ, EPOCH_WINDOWS = parse_config()
 
-    DATASETS = ["Dreyer2023"]
+    #DATASETS = ["Dreyer2023", "Lee2019_MI"]
+    DATASETS = ["Lee2019_MI"]
 
     for dataset_name in DATASETS:
         save_base = Path("Dataset") / dataset_name
-        save_base.mkdir(exist_ok=True)
+        save_base.mkdir(exist_ok=True, parents=True)
 
         module = importlib.import_module("moabb.datasets")
         dataset = getattr(module, dataset_name)()

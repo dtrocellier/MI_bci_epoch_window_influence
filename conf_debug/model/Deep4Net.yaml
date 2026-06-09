@@ -1,0 +1,27 @@
+name: Deep4Net
+sfreq: null
+func_build_dataset: src.utils.build_dataset
+pipeline: [training]
+
+batch_size: 256
+
+
+training:
+  n_epochs: 5
+  trainable: all
+  optimizer:
+    module: torch.optim
+    name: AdamW
+    kwargs:
+      lr: 0.001
+      weight_decay: 0.0005
+  scheduler:
+    module: torch.optim.lr_scheduler
+    name: CosineAnnealingLR
+    kwargs:
+      T_max: 149
+    need_loss: false
+  criterion:
+    module: torch.nn
+    name: CrossEntropyLoss
+    kwargs: null

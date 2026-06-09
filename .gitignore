@@ -1,6 +1,5 @@
 wandb/
 Dataset/
-model/
 Results/
 __pycache__/
 *.pyc
