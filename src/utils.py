@@ -32,6 +32,9 @@ def set_seed(seed):
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
 
 def load_all_runs(subject, cfg):
     base = Path(cfg.dataset.path)
@@ -492,6 +495,95 @@ def get_data_from_loader(loader):
         pos = None
 
     return X, y, pos
+
+
+def _saliency_map(model, valid_loader, device):
+    model.eval()
+
+    for batch in valid_loader:
+        X, _, _ = batch
+        break
+
+    saliency = torch.zeros((X.shape[1], X.shape[2]))
+
+    with torch.no_grad():
+        for batch in valid_loader:
+            if len(batch) == 3:
+                data, target, pos = batch
+                pos = pos.to(device)
+            else:
+                data, target = batch
+                pos = None
+
+            data, target = data.to(device), target.to(device)
+
+            data.requires_grad = True
+
+            if pos is not None:
+                output = model(data, pos=pos)
+            else:
+                output = model(data)
+
+            # output = model(data)
+            output = torch.sum(output, dim=0) / output.shape[0]
+
+            output_right = output[1]
+            output_right.backward(retain_graph=False)
+            saliency += data.grad.data.abs()[0]
+
+    saliency = saliency / len(valid_loader.dataset)
+    saliency = saliency.cpu().numpy()
+
+    return saliency
+
+
+def saliency_map(model, loader, device, class_index=1):
+    model.eval()
+
+    for batch in loader:
+        X, _, _ = batch
+        break
+
+    saliency = torch.zeros((X.shape[1], X.shape[2]), device=device)
+
+    for batch in loader:
+
+        if len(batch) == 3:
+            data, target, pos = batch
+            pos = pos.to(device)
+        else:
+            data, target = batch
+            pos = None
+
+        mask = target == class_index
+        data = data[mask]
+
+        data = data.to(device)
+        data.requires_grad = True
+
+        if pos is not None:
+            output = model(data, pos=pos[mask])
+        else:
+            output = model(data)
+
+        output = torch.sum(output, dim=0) / output.shape[0]
+
+        # right
+        output_right = output[class_index]
+        # If output is not a scalar, consider using torch.sum(output).backward()
+        output_right.backward()
+        # Assuming data.grad is not None and has the same shape as data
+        if data.grad is not None:
+            saliency += data.grad.abs().sum(dim=0)  # Sum over the batch
+        else:
+            raise ValueError("data.grad is None")
+
+    saliency = saliency / len(valid_loader.dataset)
+    saliency = saliency.cpu().numpy()
+
+    return {
+        "saliency": saliency,
+    }
 
 
 def compute_attributions(

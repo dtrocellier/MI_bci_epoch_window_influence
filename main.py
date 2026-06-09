@@ -16,7 +16,7 @@ from src.utils import (
     validate,
     set_seed,
     save_results,
-    compute_attributions,
+    saliency_map,
 )
 
 
@@ -118,12 +118,8 @@ def run(cfg):
         wandb.log({"test_loss": test_loss, "test_accuracy": test_acc})
 
         attributions = {}
-        attributions[0] = compute_attributions(
-            model, test_loader, cfg, target=0, device=device
-        )
-        attributions[1] = compute_attributions(
-            model, test_loader, cfg, target=1, device=device
-        )
+        attributions[0] = saliency_map(model, test_loader, device, class_index=0)
+        attributions[1] = saliency_map(model, test_loader, device, class_index=1)
 
         # attribution_base = Path("attribution")
         attribution_base = Path(
