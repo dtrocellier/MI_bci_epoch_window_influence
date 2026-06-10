@@ -1,0 +1,9 @@
+name: CSP_LDA
+sfreq: 250
+
+filter:
+  - 8
+  - 30
+
+# 3 pairs
+n_components: 6

@@ -1,7 +1,7 @@
 name: Deep4Net
-sfreq: null
+sfreq: 250
 func_build_dataset: src.utils.build_dataset
-pipeline: [training]
+pipeline: [ training ]
 
 batch_size: 256
 

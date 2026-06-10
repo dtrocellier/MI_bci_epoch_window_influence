@@ -11,5 +11,5 @@ epoch_windows: [ [ 0, 4 ], [ 0.5, 4.5 ] ]
 n_channels: 27
 n_classes: 2
 input_window_samples:
-  none: 2048
+  250: 1000
   200: 800

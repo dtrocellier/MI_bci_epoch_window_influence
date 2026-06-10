@@ -313,7 +313,7 @@ def build_model(cfg):
                 n_chans=n_chans,
                 n_outputs=n_outputs,
                 n_times=n_times,
-                final_conv_length=final_length,
+                # final_conv_length=final_length,
             )
         case "REVE":
             from braindecode.models import REVE

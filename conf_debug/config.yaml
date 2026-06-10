@@ -18,6 +18,10 @@ filter:
   - 0.5
   - 40
 
+mapping:
+  left_hand: 0
+  right_hand: 1
+
 MOABB:
   cache_config:
     use: True
