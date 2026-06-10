@@ -9,7 +9,6 @@ import numpy as np
 import pandas as pd
 import torch
 import yaml
-from captum.attr import Saliency
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
 
@@ -425,11 +424,12 @@ def validate(model, loader, criterion, device):
 
 
 def save_results(cfg, accuracy):
-    csv_path = Path(cfg.path.save_perf_path)
+    base = Path(cfg.path.results)
+    csv_path = base / "classification_results.csv"
     if os.path.exists(csv_path):
         df = pd.read_csv(csv_path)
     else:
-        csv_path.parent.mkdir(exist_ok=True, parents=True)
+        base.mkdir(exist_ok=True, parents=True)
         df = pd.DataFrame(
             columns=["subject", "dataset", "model", "epoch_window", "accuracy"]
         )
@@ -440,10 +440,10 @@ def save_results(cfg, accuracy):
     epoch_window = cfg.epoch_window.name
 
     mask = (
-        (df["subject"] == subject)
-        & (df["dataset"] == dataset)
-        & (df["model"] == model_name)
-        & (df["epoch_window"] == epoch_window)
+            (df["subject"] == subject)
+            & (df["dataset"] == dataset)
+            & (df["model"] == model_name)
+            & (df["epoch_window"] == epoch_window)
     )
     if mask.sum() > 0:
         df.loc[mask, "accuracy"] = accuracy

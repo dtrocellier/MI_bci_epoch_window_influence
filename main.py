@@ -3,9 +3,9 @@ from pathlib import Path
 
 import hydra
 import torch
+import wandb
 from omegaconf import OmegaConf
 
-import wandb
 from src.utils import (
     get_func_build_dataset,
     build_model,
@@ -33,10 +33,10 @@ def run(cfg):
         print(f"device:{device}, cuDNN enabled: {torch.backends.cudnn.enabled}")
 
     with wandb.init(
-        project=cfg.wandb.project,
-        mode=cfg.wandb.mode,
-        name=run_name,
-        config=OmegaConf.to_container(cfg, resolve=True),
+            project=cfg.wandb.project,
+            mode=cfg.wandb.mode,
+            name=run_name,
+            config=OmegaConf.to_container(cfg, resolve=True),
     ):
 
         func_build_dataset = get_func_build_dataset(cfg.model.func_build_dataset)
@@ -66,9 +66,9 @@ def run(cfg):
             best_acc = 0
             save_name = f"{cfg.model.batch_size}_epochs_{cfg.model[pipeline_name].n_epochs}_batch_size_{cfg.model[pipeline_name].optimizer.kwargs.lr}_lr"
             best_model_path = (
-                Path("model")
-                / cfg.model.name
-                / f"{cfg.model.name}_{cfg.dataset.name}_{cfg.epoch_window.name}_{cfg.subject}_{save_name}.pt"
+                    Path(cfg.path.model)
+                    / cfg.model.name
+                    / f"{cfg.model.name}_{cfg.dataset.name}_{cfg.epoch_window.name}_{cfg.subject}_{save_name}.pt"
             )
             best_model_path.parent.mkdir(exist_ok=True, parents=True)
 
@@ -121,14 +121,11 @@ def run(cfg):
         attributions[0] = saliency_map(model, test_loader, device, class_index=0)
         attributions[1] = saliency_map(model, test_loader, device, class_index=1)
 
-        # attribution_base = Path("attribution")
-        attribution_base = Path(
-            "/media/skojima/41e27c66-4999-42a0-b36f-cc19d7881326/david/attribution"
-        )
+        attribution_base = Path(cfg.path.attributions)
         attribution_base.mkdir(exist_ok=True, parents=True)
         fname = (
-            attribution_base
-            / f"{cfg.model.name}_{cfg.dataset.name}_{cfg.epoch_window.name}_{cfg.subject}.pt"
+                attribution_base
+                / f"{cfg.model.name}_{cfg.dataset.name}_{cfg.epoch_window.name}_{cfg.subject}.pt"
         )
         torch.save(attributions, fname)
 
