@@ -140,9 +140,10 @@ def run(cfg):
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg):
-    if cfg.subject in cfg.dataset.subjects.exclude:
-        print(f"subject: {cfg.subject} is excluded.")
-        return
+    if cfg.dataset.subjects.exclude is not None:
+        if cfg.subject in cfg.dataset.subjects.exclude:
+            print(f"subject: {cfg.subject} is excluded.")
+            return
 
     set_seed(cfg.seed)
     run(cfg)

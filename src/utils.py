@@ -497,51 +497,14 @@ def get_data_from_loader(loader):
     return X, y, pos
 
 
-def _saliency_map(model, valid_loader, device):
-    model.eval()
-
-    for batch in valid_loader:
-        X, _, _ = batch
-        break
-
-    saliency = torch.zeros((X.shape[1], X.shape[2]))
-
-    with torch.no_grad():
-        for batch in valid_loader:
-            if len(batch) == 3:
-                data, target, pos = batch
-                pos = pos.to(device)
-            else:
-                data, target = batch
-                pos = None
-
-            data, target = data.to(device), target.to(device)
-
-            data.requires_grad = True
-
-            if pos is not None:
-                output = model(data, pos=pos)
-            else:
-                output = model(data)
-
-            # output = model(data)
-            output = torch.sum(output, dim=0) / output.shape[0]
-
-            output_right = output[1]
-            output_right.backward(retain_graph=False)
-            saliency += data.grad.data.abs()[0]
-
-    saliency = saliency / len(valid_loader.dataset)
-    saliency = saliency.cpu().numpy()
-
-    return saliency
-
-
 def saliency_map(model, loader, device, class_index=1):
     model.eval()
 
     for batch in loader:
-        X, _, _ = batch
+        if len(batch) == 3:
+            X, _, _ = batch
+        else:
+            X, _ = batch
         break
 
     saliency = torch.zeros((X.shape[1], X.shape[2]), device=device)
@@ -578,82 +541,9 @@ def saliency_map(model, loader, device, class_index=1):
         else:
             raise ValueError("data.grad is None")
 
-    saliency = saliency / len(valid_loader.dataset)
+    saliency = saliency / len(loader.dataset)
     saliency = saliency.cpu().numpy()
 
     return {
         "saliency": saliency,
-    }
-
-
-def compute_attributions(
-    model, test_loader, cfg, target=None, baseline=None, device="cpu"
-):
-    X, y, pos = get_data_from_loader(test_loader)
-
-    model.eval()
-
-    X.to(device)
-    y.to(device)
-    X = X.to(device).detach().clone().requires_grad_(True)
-
-    if pos is not None:
-        pos.to(device)
-
-    with torch.no_grad():
-        logits = model(X)
-        if target is None:
-            if logits.ndim == 2:
-                target = logits.argmax(dim=1)
-            else:
-                target = None
-
-    saliency = Saliency(model)
-    # ig = IntegratedGradients(model)
-    # dl = DeepLift(model)
-
-    if pos is None:
-        attr_saliency = saliency.attribute(
-            X,
-            target=target,
-            abs=True,
-        )
-        """
-        attr_ig = ig.attribute(
-            X,
-            baselines=baseline,
-            target=target,
-        )
-        attr_dl = dl.attribute(
-            X,
-            baselines=baseline,
-            target=target,
-        )
-        """
-    else:
-        attr_saliency = saliency.attribute(
-            X,
-            target=target,
-            abs=True,
-            additional_forward_args=(pos,),
-        )
-        """
-        attr_ig = ig.attribute(
-            X,
-            baselines=baseline,
-            target=target,
-            additional_forward_args=(pos,),
-        )
-        attr_dl = dl.attribute(
-            X,
-            baselines=baseline,
-            target=target,
-            additional_forward_args=(pos,),
-        )
-        """
-
-    return {
-        "saliency": attr_saliency.detach().cpu(),
-        # "integrated_gradients": attr_ig.detach().cpu(),
-        # "deeplift": attr_dl.detach().cpu(),
     }
