@@ -8,8 +8,7 @@ batch_size: 256
 
 linear_probing:
   n_epochs: 200
-  #trainable: [final_layer]
-  trainable: all
+  trainable: [ final_layer ]
   optimizer:
     module: torch.optim
     name: AdamW
