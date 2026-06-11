@@ -6,7 +6,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=32
 #SBATCH --exclusive
-#SBATCH --time=05:00:00
+#SBATCH --time=12:00:00
 #SBATCH -o /home/%u/output_job/mi_epoch_window_influence/job-%x.%N.%j.out
 #SBATCH -e /home/%u/output_job/mi_epoch_window_influence/job-%x.%N.%j.err
 
