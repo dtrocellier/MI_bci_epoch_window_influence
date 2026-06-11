@@ -26,3 +26,5 @@ CUDA_VISIBLE_DEVICES=1 uv run python main.py -m \
     subject=$(seq -s, 1 87) \
     > logs/dreyer_w_05_45_${SLURM_JOB_ID}.out \
     2> logs/dreyer_w_05_45_${SLURM_JOB_ID}.err &
+
+wait
