@@ -207,6 +207,7 @@ def main(cfg):
             print(f"subject: {cfg.subject} is excluded.")
             return
 
+    print("CUBLAS_WORKSPACE_CONFIG =", os.environ.get("CUBLAS_WORKSPACE_CONFIG"))
     set_seed(cfg.seed)
 
     run(cfg)
