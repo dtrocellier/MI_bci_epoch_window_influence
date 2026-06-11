@@ -181,8 +181,11 @@ if __name__ == "__main__":
 
     DATASETS = ["Dreyer2023", "Lee2019_MI"]
 
-    # DATASETS = ["Lee2019_MI"]
-    # SFREQ = [200]
+    DATASETS = ["Lee2019_MI"]
+    SFREQ = [250]
+    # print(EPOCH_WINDOWS)
+    # EPOCH_WINDOWS = {"Lee2019_MI": [[0.5, 3.5]]}
+
     print(SFREQ)
 
     for dataset_name in DATASETS:

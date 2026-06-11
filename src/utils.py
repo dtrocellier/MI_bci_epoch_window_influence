@@ -1,19 +1,18 @@
+import gc
 import importlib
 import json
 import math
 import os
 import random
 from pathlib import Path
-import gc
 
 import numpy as np
 import pandas as pd
 import torch
 import yaml
+from captum.attr import IntegratedGradients, DeepLift, LRP
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
-
-from captum.attr import IntegratedGradients, DeepLift, LRP
 
 
 def load_config():
@@ -29,13 +28,14 @@ def window_suffix(tmin, tmax, sfreq):
 
 def set_seed(seed):
     np.random.seed(seed)
-    torch.manual_seed(seed)
     random.seed(seed)
+
+    torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+    torch.use_deterministic_algorithms(True)
 
 
 def load_all_runs(subject, cfg):
@@ -163,14 +163,14 @@ def build_dataset(cfg):
     valid_loader = torch.utils.data.DataLoader(
         list(zip(torch.unbind(X_valid), torch.unbind(y_valid))),
         batch_size=cfg.model.batch_size,
-        shuffle=True,
-        drop_last=True,
+        shuffle=False,
+        drop_last=False,
         num_workers=0,
     )
     test_loader = torch.utils.data.DataLoader(
         list(zip(torch.unbind(X_test), torch.unbind(y_test))),
         batch_size=cfg.model.batch_size,
-        shuffle=True,
+        shuffle=False,
         drop_last=False,
         num_workers=0,
     )
@@ -282,9 +282,15 @@ def build_dataset_REVE(cfg):
 
     # build dataloader
 
-    train_loader = DataLoader(train_set, batch_size=cfg.model.batch_size, shuffle=True)
-    valid_loader = DataLoader(valid_set, batch_size=cfg.model.batch_size, shuffle=False)
-    test_loader = DataLoader(test_set, batch_size=cfg.model.batch_size, shuffle=False)
+    train_loader = DataLoader(
+        train_set, batch_size=cfg.model.batch_size, shuffle=True, num_workers=0
+    )
+    valid_loader = DataLoader(
+        valid_set, batch_size=cfg.model.batch_size, shuffle=False, num_workers=0
+    )
+    test_loader = DataLoader(
+        test_set, batch_size=cfg.model.batch_size, shuffle=False, num_workers=0
+    )
 
     return train_loader, valid_loader, test_loader
 
@@ -442,10 +448,10 @@ def save_results(cfg, accuracy, fname="classification_results.csv"):
     epoch_window = cfg.epoch_window.name
 
     mask = (
-            (df["subject"] == subject)
-            & (df["dataset"] == dataset)
-            & (df["model"] == model_name)
-            & (df["epoch_window"] == epoch_window)
+        (df["subject"] == subject)
+        & (df["dataset"] == dataset)
+        & (df["model"] == model_name)
+        & (df["epoch_window"] == epoch_window)
     )
     if mask.sum() > 0:
         df.loc[mask, "accuracy"] = accuracy
@@ -589,8 +595,6 @@ def lrp_map(model, loader, device, class_index=1):
 
 def _captum_map(model, loader, device, class_index=1, method="integrated_gradients"):
     model.eval()
-    from captum.attr._utils.lrp_rules import EpsilonRule
-    from braindecode.modules.layers import Ensure4d
 
     for batch in loader:
         if len(batch) == 3:
