@@ -109,10 +109,9 @@ def build_dataset(cfg):
     train_subjects, valid_subjects = train_test_split(
         subjects, test_size=test_size, random_state=random_state
     )
-
-    if cfg.debug:
-        train_subjects = train_subjects[:10]
-        valid_subjects = valid_subjects[:10]
+    print("train_subjects: ", train_subjects)
+    print("valid_subjects: ", valid_subjects)
+    print("test_subject: ", test_subject)
 
     # load training data
     X_list, y_list = [], []
@@ -210,9 +209,9 @@ def build_dataset_REVE(cfg):
         subjects, test_size=test_size, random_state=random_state
     )
 
-    if cfg.debug:
-        train_subjects = train_subjects[:10]
-        valid_subjects = valid_subjects[:10]
+    print("train_subjects: ", train_subjects)
+    print("valid_subjects: ", valid_subjects)
+    print("test_subject: ", test_subject)
 
     # load training data
     X_list, y_list = [], []
@@ -426,9 +425,9 @@ def validate(model, loader, criterion, device):
     return total_loss / len(loader.dataset), correct / len(loader.dataset)
 
 
-def save_results(cfg, accuracy):
+def save_results(cfg, accuracy, fname="classification_results.csv"):
     base = Path(cfg.path.results)
-    csv_path = base / "classification_results.csv"
+    csv_path = base / fname
     if os.path.exists(csv_path):
         df = pd.read_csv(csv_path)
     else:
@@ -443,10 +442,10 @@ def save_results(cfg, accuracy):
     epoch_window = cfg.epoch_window.name
 
     mask = (
-        (df["subject"] == subject)
-        & (df["dataset"] == dataset)
-        & (df["model"] == model_name)
-        & (df["epoch_window"] == epoch_window)
+            (df["subject"] == subject)
+            & (df["dataset"] == dataset)
+            & (df["model"] == model_name)
+            & (df["epoch_window"] == epoch_window)
     )
     if mask.sum() > 0:
         df.loc[mask, "accuracy"] = accuracy

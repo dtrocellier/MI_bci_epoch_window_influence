@@ -8,6 +8,7 @@ from omegaconf import OmegaConf
 from sklearn.pipeline import Pipeline
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from mne.decoding import CSP
+from sklearn.metrics import accuracy_score
 
 from src.utils import (
     save_results,
@@ -42,31 +43,7 @@ def run_within_user(cfg):
 
     suffix = f"{tmin}_{tmax}_{sfreq}"
 
-    module = importlib.import_module("moabb.datasets")
-    cls = getattr(module, cfg.dataset.name)
-
-    dataset = cls()
-
-    cache_config = OmegaConf.to_container(cfg.MOABB.cache_config)
-    print(cache_config)
-    print(type(cache_config))
-
-    data = dataset.get_data(subjects=[cfg.subject], cache_config=cache_config)[
-        cfg.subject
-    ]
-
-    print(data)
-
-    for ses_name, ses_data in data.items():
-        print(ses_name)
-        print(ses_data)
-        for run_name, raw in ses_data.items():
-            print(run_name)
-            print(raw)
-            break
-        break
-
-    exit()
+    base = Path("Dataset") / cfg.dataset.name / "CSP_LDA"
 
     for session_idx in range(cfg.dataset.n_sessions):
         print(session_idx)
@@ -91,6 +68,23 @@ def run_within_user(cfg):
         )
 
         print(train_X.shape, train_y.shape, test_X.shape, test_y.shape)
+
+        model = Pipeline(
+            [
+                ("CSP", CSP(n_components=cfg.model.n_components, log=True)),
+                ("LDA", LinearDiscriminantAnalysis(solver="eigen", shrinkage="auto")),
+            ]
+        )
+
+        model.fit(train_X, train_y)
+
+        preds = model.predict(test_X)
+
+        acc = accuracy_score(test_y, preds)
+
+        print(acc)
+
+        save_results(cfg, acc, "classification_results_csp_lda.csv")
 
         exit()
 

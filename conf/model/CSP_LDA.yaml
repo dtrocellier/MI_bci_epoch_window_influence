@@ -1,5 +1,5 @@
 name: CSP_LDA
-sfreq: 250
+sfreq: null
 
 filter:
   - 8

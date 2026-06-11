@@ -1,6 +1,6 @@
 wandb/
 Dataset/
-Results/
+results/
 __pycache__/
 *.pyc
 .idea/

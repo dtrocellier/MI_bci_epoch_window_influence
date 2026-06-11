@@ -28,6 +28,8 @@ MOABB:
     save_raw: False
 
 path:
-  save_perf_path: "Results/perf_benchmark.csv"
+  results: "results"
+  attributions: "attributions"
+  model: "models"
 
 debug: true

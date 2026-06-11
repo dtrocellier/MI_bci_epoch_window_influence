@@ -7,7 +7,6 @@ seed: 2002012
 subject: 1
 wandb:
   mode: offline
-  #mode: disabled
   project: Leave_one_out_window_influence
 
 split:
@@ -31,6 +30,3 @@ path:
   results: "results"
   attributions: "attributions"
   model: "models"
-
-
-debug: true
