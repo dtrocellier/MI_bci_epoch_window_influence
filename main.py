@@ -151,7 +151,7 @@ def run(cfg):
         clear_cuda(model)
 
         test_loader_batch_1 = torch.utils.data.DataLoader(
-            test_loader.dataset, batch_size=1, shuffle=False
+            test_loader.dataset, batch_size=32, shuffle=False
         )
 
         attributions = {}

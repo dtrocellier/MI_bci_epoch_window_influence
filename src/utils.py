@@ -643,8 +643,8 @@ def _captum_map(model, loader, device, class_index=1, method="integrated_gradien
                 baselines=baseline,
                 target=class_index,
                 additional_forward_args=forward_args,
-                n_steps=16,
-                internal_batch_size=1,
+                n_steps=50,
+                internal_batch_size=32,
             )
         elif method in ["deeplift"]:
             baseline = torch.zeros_like(data)
@@ -753,5 +753,6 @@ class EarlyStopping:
 def clear_cuda(model):
     model.zero_grad(set_to_none=True)
     gc.collect()
-    torch.cuda.empty_cache()
-    torch.cuda.ipc_collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        torch.cuda.ipc_collect()
