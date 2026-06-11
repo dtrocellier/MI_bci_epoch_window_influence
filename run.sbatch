@@ -11,8 +11,6 @@
 
 export CUDA_VISIBLE_DEVICES=0
 
-SUBJECTS=($SUBJECT_LIST)
-SUBJECT=${SUBJECTS[$SLURM_ARRAY_TASK_ID]}
 
 /usr/bin/apptainer exec --nv \
   /beegfs/skojima/docker/mi-bci-epoch-window-influence.sif \
