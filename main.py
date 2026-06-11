@@ -21,6 +21,7 @@ from src.utils import (
     integrated_gradients_map,
     deeplift_map,
     EarlyStopping,
+    clear_cuda,
 )
 
 
@@ -147,11 +148,7 @@ def run(cfg):
         del criterion
         del train_loader
         del valid_loader
-        model.zero_grad(set_to_none=True)
-        gc.collect()
-        if device == "cuda":
-            torch.cuda.empty_cache()
-            torch.cuda.ipc_collect()
+        clear_cuda(model)
 
         test_loader_batch_1 = torch.utils.data.DataLoader(
             test_loader.dataset, batch_size=1, shuffle=False
@@ -161,23 +158,29 @@ def run(cfg):
         attributions[0] = saliency_map(
             model, test_loader_batch_1, device, class_index=0
         )
+        clear_cuda(model)
         attributions[1] = saliency_map(
             model, test_loader_batch_1, device, class_index=1
         )
+        clear_cuda(model)
 
         attributions[0].update(
             integrated_gradients_map(model, test_loader_batch_1, device, class_index=0)
         )
+        clear_cuda(model)
         attributions[1].update(
             integrated_gradients_map(model, test_loader_batch_1, device, class_index=1)
         )
+        clear_cuda(model)
 
         attributions[0].update(
             deeplift_map(model, test_loader_batch_1, device, class_index=0)
         )
+        clear_cuda(model)
         attributions[1].update(
             deeplift_map(model, test_loader_batch_1, device, class_index=1)
         )
+        clear_cuda(model)
 
         attribution_base = Path(cfg.path.attributions)
         attribution_base.mkdir(exist_ok=True, parents=True)

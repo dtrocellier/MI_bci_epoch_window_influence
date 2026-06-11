@@ -4,6 +4,7 @@ import math
 import os
 import random
 from pathlib import Path
+import gc
 
 import numpy as np
 import pandas as pd
@@ -747,3 +748,10 @@ class EarlyStopping:
             self.counter += 1
 
         return self.counter >= self.patience
+
+
+def clear_cuda(model):
+    model.zero_grad(set_to_none=True)
+    gc.collect()
+    torch.cuda.empty_cache()
+    torch.cuda.ipc_collect()
