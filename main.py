@@ -20,7 +20,6 @@ from src.utils import (
     integrated_gradients_map,
     deeplift_map,
     EarlyStopping,
-    BestScore,
 )
 
 
@@ -59,6 +58,9 @@ def run(cfg):
                     layer = model.get_submodule(layer_name)
                     for param in layer.parameters():
                         param.requires_grad = True
+            else:
+                for param in model.parameters():
+                    param.requires_grad = True
 
             for name, param in model.named_parameters():
                 print(name, param.requires_grad)
@@ -75,8 +77,6 @@ def run(cfg):
                 )
             else:
                 early_stopping = None
-
-            best_score = BestScore()
 
             best_acc = 0
             save_name = f"{cfg.model.batch_size}_epochs_{cfg.model[pipeline_name].n_epochs}_batch_size_{cfg.model[pipeline_name].optimizer.kwargs.lr}_lr"
