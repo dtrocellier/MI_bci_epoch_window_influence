@@ -1,7 +1,9 @@
 from pathlib import Path
 import numpy as np
+import importlib
 
 import hydra
+from omegaconf import OmegaConf
 
 from sklearn.pipeline import Pipeline
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
@@ -40,7 +42,31 @@ def run_within_user(cfg):
 
     suffix = f"{tmin}_{tmax}_{sfreq}"
 
-    base = Path("Dataset") / cfg.dataset.name
+    module = importlib.import_module("moabb.datasets")
+    cls = getattr(module, cfg.dataset.name)
+
+    dataset = cls()
+
+    cache_config = OmegaConf.to_container(cfg.MOABB.cache_config)
+    print(cache_config)
+    print(type(cache_config))
+
+    data = dataset.get_data(subjects=[cfg.subject], cache_config=cache_config)[
+        cfg.subject
+    ]
+
+    print(data)
+
+    for ses_name, ses_data in data.items():
+        print(ses_name)
+        print(ses_data)
+        for run_name, raw in ses_data.items():
+            print(run_name)
+            print(raw)
+            break
+        break
+
+    exit()
 
     for session_idx in range(cfg.dataset.n_sessions):
         print(session_idx)
