@@ -25,3 +25,5 @@ training:
     module: torch.nn
     name: CrossEntropyLoss
     kwargs: null
+  early_stopping:
+    enable: false

@@ -19,7 +19,8 @@ from src.utils import (
     saliency_map,
     integrated_gradients_map,
     deeplift_map,
-    lrp_map,
+    EarlyStopping,
+    BestScore,
 )
 
 
@@ -66,6 +67,17 @@ def run(cfg):
             scheduler = build_scheduler(optimizer, cfg.model[pipeline_name].scheduler)
             criterion = build_criterion(cfg.model[pipeline_name].criterion)
 
+            if cfg.model[pipeline_name].early_stopping.enable:
+                early_stopping = EarlyStopping(
+                    mode="max",
+                    warmup=cfg.model[pipeline_name].early_stopping.warmup,
+                    patience=cfg.model[pipeline_name].early_stopping.patience,
+                )
+            else:
+                early_stopping = None
+
+            best_score = BestScore()
+
             best_acc = 0
             save_name = f"{cfg.model.batch_size}_epochs_{cfg.model[pipeline_name].n_epochs}_batch_size_{cfg.model[pipeline_name].optimizer.kwargs.lr}_lr"
             best_model_path = (
@@ -97,13 +109,14 @@ def run(cfg):
                 else:
                     scheduler.step()
 
+                txt = f"{epoch + 1:03d}, train_loss: {train_loss:.4f}, train_acc: {train_acc:.4f}, valid_loss: {valid_loss:.4f}, valid_acc: {valid_acc:.4f}, duration: {duration:.2f}s, lr: {scheduler.get_last_lr()[0]:.4f}"
+
                 if valid_acc > best_acc:
                     best_acc = valid_acc
                     torch.save(model.state_dict(), best_model_path)
+                    txt += ", best model"
 
-                print(
-                    f"{epoch + 1:03d}, train_loss: {train_loss:.4f}, train_acc: {train_acc:.4f}, valid_loss: {valid_loss:.4f}, valid_acc: {valid_acc:.4f}, duration: {duration:.2f}s, lr: {scheduler.get_last_lr()[0]:.4f}"
-                )
+                print(txt)
                 wandb.log(
                     {
                         "train_loss": train_loss,
@@ -115,6 +128,11 @@ def run(cfg):
                         "lr": scheduler.get_last_lr()[0],
                     }
                 )
+
+                if early_stopping is not None:
+                    if early_stopping(valid_acc):
+                        print("Early stopping")
+                        break
 
             model.load_state_dict(torch.load(best_model_path, weights_only=True))
         test_loss, test_acc = validate(model, test_loader, criterion, device=device)
@@ -133,9 +151,6 @@ def run(cfg):
 
         attributions[0].update(deeplift_map(model, test_loader, device, class_index=0))
         attributions[1].update(deeplift_map(model, test_loader, device, class_index=1))
-
-        attributions[0].update(lrp_map(model, test_loader, device, class_index=0))
-        attributions[1].update(lrp_map(model, test_loader, device, class_index=1))
 
         attribution_base = Path(cfg.path.attributions)
         attribution_base.mkdir(exist_ok=True, parents=True)

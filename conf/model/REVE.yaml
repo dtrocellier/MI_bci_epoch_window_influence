@@ -26,6 +26,11 @@ linear_probing:
     name: CrossEntropyLoss
     kwargs: null
 
+  early_stopping:
+    enable: true
+    warmup: 5
+    patience: 15
+
 fine_tuning:
   n_epochs: 5
   trainable: all
@@ -45,3 +50,6 @@ fine_tuning:
     module: torch.nn
     name: CrossEntropyLoss
     kwargs: null
+
+  early_stopping:
+    enable: false

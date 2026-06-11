@@ -586,10 +586,6 @@ def _captum_map(model, loader, device, class_index=1, method="integrated_gradien
     from captum.attr._utils.lrp_rules import EpsilonRule
     from braindecode.modules.layers import Ensure4d
 
-    for module in model.modules():
-        if isinstance(module, Ensure4d):
-            module.rule = EpsilonRule()
-
     for batch in loader:
         if len(batch) == 3:
             X, _, _ = batch
