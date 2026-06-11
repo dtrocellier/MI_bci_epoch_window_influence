@@ -44,9 +44,12 @@ def run(cfg):
             config=OmegaConf.to_container(cfg, resolve=True),
     ):
 
+        print("before build_dataset")
+
         func_build_dataset = get_func_build_dataset(cfg.model.func_build_dataset)
         train_loader, valid_loader, test_loader = func_build_dataset(cfg)
 
+        print("before build_model")
         model = build_model(cfg)
         model.to(device)
 
