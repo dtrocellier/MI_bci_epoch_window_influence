@@ -17,6 +17,9 @@ from src.utils import (
     set_seed,
     save_results,
     saliency_map,
+    integrated_gradients_map,
+    deeplift_map,
+    lrp_map,
 )
 
 
@@ -120,6 +123,19 @@ def run(cfg):
         attributions = {}
         attributions[0] = saliency_map(model, test_loader, device, class_index=0)
         attributions[1] = saliency_map(model, test_loader, device, class_index=1)
+
+        attributions[0].update(
+            integrated_gradients_map(model, test_loader, device, class_index=0)
+        )
+        attributions[1].update(
+            integrated_gradients_map(model, test_loader, device, class_index=1)
+        )
+
+        attributions[0].update(deeplift_map(model, test_loader, device, class_index=0))
+        attributions[1].update(deeplift_map(model, test_loader, device, class_index=1))
+
+        attributions[0].update(lrp_map(model, test_loader, device, class_index=0))
+        attributions[1].update(lrp_map(model, test_loader, device, class_index=1))
 
         attribution_base = Path(cfg.path.attributions)
         attribution_base.mkdir(exist_ok=True, parents=True)

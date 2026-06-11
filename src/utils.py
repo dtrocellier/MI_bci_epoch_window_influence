@@ -12,6 +12,8 @@ import yaml
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
 
+from captum.attr import IntegratedGradients, DeepLift, LRP
+
 
 def load_config():
     base = Path(__file__).parent.parent.resolve()
@@ -546,4 +548,104 @@ def saliency_map(model, loader, device, class_index=1):
 
     return {
         "saliency": saliency,
+    }
+
+
+def integrated_gradients_map(model, loader, device, class_index=1):
+    return _captum_map(
+        model=model,
+        loader=loader,
+        device=device,
+        class_index=class_index,
+        method="integrated_gradients",
+    )
+
+
+def deeplift_map(model, loader, device, class_index=1):
+    return _captum_map(
+        model=model,
+        loader=loader,
+        device=device,
+        class_index=class_index,
+        method="deeplift",
+    )
+
+
+def lrp_map(model, loader, device, class_index=1):
+    return _captum_map(
+        model=model,
+        loader=loader,
+        device=device,
+        class_index=class_index,
+        method="lrp",
+    )
+
+
+def _captum_map(model, loader, device, class_index=1, method="integrated_gradients"):
+    model.eval()
+
+    for batch in loader:
+        if len(batch) == 3:
+            X, _, _ = batch
+        else:
+            X, _ = batch
+        break
+
+    attr_map = torch.zeros((X.shape[1], X.shape[2]), device=device)
+    n_samples = 0
+
+    if method == "integrated_gradients":
+        attr_method = IntegratedGradients(model)
+    elif method == "deeplift":
+        attr_method = DeepLift(model)
+    elif method == "lrp":
+        attr_method = LRP(model)
+    else:
+        raise ValueError(f"Unknown method: {method}")
+
+    for batch in loader:
+        if len(batch) == 3:
+            data, target, pos = batch
+            pos = pos.to(device)
+        else:
+            data, target = batch
+            pos = None
+
+        mask = target == class_index
+
+        if mask.sum() == 0:
+            continue
+
+        data = data[mask].to(device)
+        data.requires_grad_(True)
+        n_samples += data.shape[0]
+
+        if pos is not None:
+            pos = pos[mask].to(device)
+            forward_args = (pos,)
+        else:
+            forward_args = None
+
+        if method in ["integrated_gradients", "deeplift"]:
+            baseline = torch.zeros_like(data)
+
+            attr = attr_method.attribute(
+                data,
+                baselines=baseline,
+                target=class_index,
+                additional_forward_args=forward_args,
+            )
+        else:
+            attr = attr_method.attribute(
+                data,
+                target=class_index,
+                additional_forward_args=forward_args,
+            )
+
+        attr_map += attr.abs().sum(dim=0)
+
+    attr_map = attr_map / n_samples
+
+    return {
+        method: attr_map.detach().cpu().numpy(),
     }
