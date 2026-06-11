@@ -628,9 +628,19 @@ def _captum_map(model, loader, device, class_index=1, method="integrated_gradien
         else:
             forward_args = None
 
-        if method in ["integrated_gradients", "deeplift"]:
+        if method in ["integrated_gradients"]:
             baseline = torch.zeros_like(data)
 
+            attr = attr_method.attribute(
+                data,
+                baselines=baseline,
+                target=class_index,
+                additional_forward_args=forward_args,
+                n_steps=16,
+                internal_batch_size=1,
+            )
+        elif method in ["deeplift"]:
+            baseline = torch.zeros_like(data)
             attr = attr_method.attribute(
                 data,
                 baselines=baseline,

@@ -138,19 +138,31 @@ def run(cfg):
         test_loss, test_acc = validate(model, test_loader, criterion, device=device)
         wandb.log({"test_loss": test_loss, "test_accuracy": test_acc})
 
+        test_loader_batch_1 = torch.utils.data.DataLoader(
+            test_loader.dataset, batch_size=1, shuffle=False
+        )
+
         attributions = {}
-        attributions[0] = saliency_map(model, test_loader, device, class_index=0)
-        attributions[1] = saliency_map(model, test_loader, device, class_index=1)
+        attributions[0] = saliency_map(
+            model, test_loader_batch_1, device, class_index=0
+        )
+        attributions[1] = saliency_map(
+            model, test_loader_batch_1, device, class_index=1
+        )
 
         attributions[0].update(
-            integrated_gradients_map(model, test_loader, device, class_index=0)
+            integrated_gradients_map(model, test_loader_batch_1, device, class_index=0)
         )
         attributions[1].update(
-            integrated_gradients_map(model, test_loader, device, class_index=1)
+            integrated_gradients_map(model, test_loader_batch_1, device, class_index=1)
         )
 
-        attributions[0].update(deeplift_map(model, test_loader, device, class_index=0))
-        attributions[1].update(deeplift_map(model, test_loader, device, class_index=1))
+        attributions[0].update(
+            deeplift_map(model, test_loader_batch_1, device, class_index=0)
+        )
+        attributions[1].update(
+            deeplift_map(model, test_loader_batch_1, device, class_index=1)
+        )
 
         attribution_base = Path(cfg.path.attributions)
         attribution_base.mkdir(exist_ok=True, parents=True)
