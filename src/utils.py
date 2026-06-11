@@ -583,6 +583,12 @@ def lrp_map(model, loader, device, class_index=1):
 
 def _captum_map(model, loader, device, class_index=1, method="integrated_gradients"):
     model.eval()
+    from captum.attr._utils.lrp_rules import EpsilonRule
+    from braindecode.modules.layers import Ensure4d
+
+    for module in model.modules():
+        if isinstance(module, Ensure4d):
+            module.rule = EpsilonRule()
 
     for batch in loader:
         if len(batch) == 3:
@@ -649,3 +655,83 @@ def _captum_map(model, loader, device, class_index=1, method="integrated_gradien
     return {
         method: attr_map.detach().cpu().numpy(),
     }
+
+
+class BestScore:
+
+    def __init__(self, mode="max", min_delta=0.0):
+        """
+        Parameters
+        ----------
+        mode : {"max", "min"}
+            Optimization direction.
+
+            - "max": larger values indicate better performance.
+            - "min": smaller values indicate better performance.
+
+        min_delta : float, default=0.0
+            Minimum change required to qualify as an improvement.
+        """
+        if mode not in ("max", "min"):
+            raise ValueError("mode must be 'max' or 'min'")
+
+        self.mode = mode
+        self.min_delta = min_delta
+        self.initialize()
+
+    def initialize(self):
+        if self.mode == "max":
+            self.best_score = float("-inf")
+        else:
+            self.best_score = float("inf")
+
+    def __call__(self, score):
+        return self.step(score)
+
+    def step(self, score):
+        if self.mode == "max":
+            improved = score > (self.best_score + self.min_delta)
+        else:
+            improved = score < (self.best_score - self.min_delta)
+
+        if improved:
+            self.best_score = score
+            return True
+
+        return False
+
+
+class EarlyStopping:
+
+    def __init__(self, mode="min", patience=3, min_delta=0.0, warmup=0):
+        self.mode = mode
+        self.patience = patience
+        self.min_delta = min_delta
+        self.warmup = warmup
+
+        self.best_score = BestScore(mode=mode, min_delta=min_delta)
+        self.counter = 0
+        self.epoch = 0
+
+    def initialize(self):
+        self.best_score.initialize()
+        self.counter = 0
+        self.epoch = 0
+
+    def __call__(self, score):
+        return self.step(score)
+
+    def step(self, score):
+        self.epoch += 1
+
+        improved = self.best_score(score)
+
+        if self.epoch <= self.warmup:
+            return False
+
+        if improved:
+            self.counter = 0
+        else:
+            self.counter += 1
+
+        return self.counter >= self.patience
