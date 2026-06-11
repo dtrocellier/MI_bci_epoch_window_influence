@@ -162,7 +162,7 @@ def parse_config():
     # sfreq_list
     files = os.listdir(conf_base / "model")
     models = load_yaml(files, conf_base / "model")
-    sfreq_list = [model["sfreq"] for model in models]
+    sfreq_list = [model["sfreq"] for model in models if model["name"] != "CSP_LDA"]
     sfreq_list = list(set(sfreq_list))
 
     # epoch_windows
@@ -179,10 +179,10 @@ if __name__ == "__main__":
 
     DATASETS, SFREQ, EPOCH_WINDOWS = parse_config()
 
-    # DATASETS = ["Dreyer2023", "Lee2019_MI"]
+    DATASETS = ["Dreyer2023", "Lee2019_MI"]
 
-    DATASETS = ["Lee2019_MI"]
-    SFREQ = [200]
+    # DATASETS = ["Lee2019_MI"]
+    # SFREQ = [200]
     print(SFREQ)
 
     for dataset_name in DATASETS:
