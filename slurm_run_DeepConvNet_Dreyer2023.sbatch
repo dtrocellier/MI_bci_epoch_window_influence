@@ -12,7 +12,7 @@
 
 mkdir -p logs
 
-CUDA_VISIBLE_DEVICES=0 uv run python main.py -m \
+CUDA_VISIBLE_DEVICES=0 uv run python -u main.py -m \
     dataset=Dreyer2023 \
     epoch_window=w_00_40 \
     model=Deep4Net \
@@ -20,7 +20,7 @@ CUDA_VISIBLE_DEVICES=0 uv run python main.py -m \
     > logs/dreyer_w_00_40_${SLURM_JOB_ID}.out \
     2> logs/dreyer_w_00_40_${SLURM_JOB_ID}.err &
 
-CUDA_VISIBLE_DEVICES=1 uv run python main.py -m \
+CUDA_VISIBLE_DEVICES=1 uv run python -u main.py -m \
     dataset=Dreyer2023 \
     epoch_window=w_05_45 \
     model=Deep4Net \
