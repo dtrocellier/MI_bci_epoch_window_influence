@@ -1,6 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=cross-deeplearning
-#SBATCH --constraint="sirocco&a100&zen3"
+#SBATCH --job-name=DCN_Lee
+##SBATCH --constraint="sirocco&a100&zen3"
+#SBATCH --constraint="sirocco&rtx8000"
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=32
