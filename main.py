@@ -44,12 +44,9 @@ def run(cfg):
             config=OmegaConf.to_container(cfg, resolve=True),
     ):
 
-        print("before build_dataset")
-
         func_build_dataset = get_func_build_dataset(cfg.model.func_build_dataset)
         train_loader, valid_loader, test_loader = func_build_dataset(cfg)
 
-        print("before build_model")
         model = build_model(cfg)
         model.to(device)
 
@@ -202,17 +199,13 @@ def run(cfg):
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg):
-    print("entered main")
     if cfg.dataset.subjects.exclude is not None:
-        print("checking exclude", flush=True)
         if cfg.subject in cfg.dataset.subjects.exclude:
             print(f"subject: {cfg.subject} is excluded.")
             return
 
-    print("before set_seed")
     set_seed(cfg.seed)
 
-    print("before run")
     run(cfg)
 
 
