@@ -148,6 +148,7 @@ def run(cfg):
         del criterion
         del train_loader
         del valid_loader
+        gc.collect()
         clear_cuda(model)
 
         test_loader_batch_1 = torch.utils.data.DataLoader(
