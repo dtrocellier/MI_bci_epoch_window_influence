@@ -38,10 +38,10 @@ def run(cfg):
         print(f"device:{device}, cuDNN enabled: {torch.backends.cudnn.enabled}")
 
     with wandb.init(
-            project=cfg.wandb.project,
-            mode=cfg.wandb.mode,
-            name=run_name,
-            config=OmegaConf.to_container(cfg, resolve=True),
+        project=cfg.wandb.project,
+        mode=cfg.wandb.mode,
+        name=run_name,
+        config=OmegaConf.to_container(cfg, resolve=True),
     ):
 
         func_build_dataset = get_func_build_dataset(cfg.model.func_build_dataset)
@@ -83,9 +83,9 @@ def run(cfg):
             best_acc = 0
             save_name = f"{cfg.model.batch_size}_epochs_{cfg.model[pipeline_name].n_epochs}_batch_size_{cfg.model[pipeline_name].optimizer.kwargs.lr}_lr"
             best_model_path = (
-                    Path(cfg.path.model)
-                    / cfg.model.name
-                    / f"{cfg.model.name}_{cfg.dataset.name}_{cfg.epoch_window.name}_{cfg.subject}_{save_name}.pt"
+                Path(cfg.path.model)
+                / cfg.model.name
+                / f"{cfg.model.name}_{cfg.dataset.name}_{cfg.epoch_window.name}_{cfg.subject}_{save_name}.pt"
             )
             best_model_path.parent.mkdir(exist_ok=True, parents=True)
 
@@ -186,8 +186,8 @@ def run(cfg):
         attribution_base = Path(cfg.path.attributions)
         attribution_base.mkdir(exist_ok=True, parents=True)
         fname = (
-                attribution_base
-                / f"{cfg.model.name}_{cfg.dataset.name}_{cfg.epoch_window.name}_{cfg.subject}.pt"
+            attribution_base
+            / f"{cfg.model.name}_{cfg.dataset.name}_{cfg.epoch_window.name}_{cfg.subject}.pt"
         )
         torch.save(attributions, fname)
 
