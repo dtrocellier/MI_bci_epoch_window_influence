@@ -12,24 +12,6 @@
 mkdir -p logs
 
 CUDA_VISIBLE_DEVICES=0 uv run python main.py -m \
-    dataset=Dreyer2023 \
-    epoch_window=w_00_40 \
-    model=Deep4Net \
-    subject=$(seq -s, 1 87) \
-    > logs/dreyer_w_00_40_${SLURM_JOB_ID}.out \
-    2> logs/dreyer_w_00_40_${SLURM_JOB_ID}.err &
-
-CUDA_VISIBLE_DEVICES=1 uv run python main.py -m \
-    dataset=Dreyer2023 \
-    epoch_window=w_05_45 \
-    model=Deep4Net \
-    subject=$(seq -s, 1 87) \
-    > logs/dreyer_w_05_45_${SLURM_JOB_ID}.out \
-    2> logs/dreyer_w_05_45_${SLURM_JOB_ID}.err &
-
-wait
-
-CUDA_VISIBLE_DEVICES=0 uv run python main.py -m \
     dataset=Lee2019_MI \
     epoch_window=w_00_30 \
     model=Deep4Net \

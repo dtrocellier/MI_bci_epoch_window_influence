@@ -443,10 +443,10 @@ def save_results(cfg, accuracy):
     epoch_window = cfg.epoch_window.name
 
     mask = (
-            (df["subject"] == subject)
-            & (df["dataset"] == dataset)
-            & (df["model"] == model_name)
-            & (df["epoch_window"] == epoch_window)
+        (df["subject"] == subject)
+        & (df["dataset"] == dataset)
+        & (df["model"] == model_name)
+        & (df["epoch_window"] == epoch_window)
     )
     if mask.sum() > 0:
         df.loc[mask, "accuracy"] = accuracy
