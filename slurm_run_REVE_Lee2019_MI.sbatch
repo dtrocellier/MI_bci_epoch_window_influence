@@ -1,7 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=cross-deeplearning
-##SBATCH --constraint="sirocco&a100&zen3"
-#SBATCH --constraint="sirocco&p100"
+#SBATCH --constraint="sirocco&a100&zen3"
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=32
@@ -15,7 +14,7 @@ mkdir -p logs
 CUDA_VISIBLE_DEVICES=0 uv run python main.py -m \
     dataset=Lee2019_MI \
     epoch_window=w_00_30 \
-    model=Deep4Net \
+    model=REVE \
     subject=$(seq -s, 1 54) \
     > logs/lee_w_00_30_${SLURM_JOB_ID}.out \
     2> logs/lee_w_00_30_${SLURM_JOB_ID}.err &
@@ -23,7 +22,7 @@ CUDA_VISIBLE_DEVICES=0 uv run python main.py -m \
 CUDA_VISIBLE_DEVICES=1 uv run python main.py -m \
     dataset=Lee2019_MI \
     epoch_window=w_05_35 \
-    model=Deep4Net \
+    model=REVE \
     subject=$(seq -s, 1 54) \
     > logs/lee_w_05_35_${SLURM_JOB_ID}.out \
     2> logs/lee_w_05_35_${SLURM_JOB_ID}.err &
