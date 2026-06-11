@@ -511,6 +511,7 @@ def saliency_map(model, loader, device, class_index=1):
 
     saliency = torch.zeros((X.shape[1], X.shape[2]), device=device)
 
+    n_used = 0
     for batch in loader:
 
         if len(batch) == 3:
@@ -522,6 +523,11 @@ def saliency_map(model, loader, device, class_index=1):
 
         mask = target == class_index
         data = data[mask]
+
+        if mask.sum() == 0:
+            continue
+
+        n_used += data.shape[0]
 
         data = data.to(device)
         data.requires_grad = True
@@ -543,7 +549,7 @@ def saliency_map(model, loader, device, class_index=1):
         else:
             raise ValueError("data.grad is None")
 
-    saliency = saliency / len(loader.dataset)
+    saliency = saliency / n_used
     saliency = saliency.cpu().numpy()
 
     return {

@@ -1,4 +1,5 @@
 import time
+import gc
 from pathlib import Path
 
 import hydra
@@ -137,6 +138,20 @@ def run(cfg):
             model.load_state_dict(torch.load(best_model_path, weights_only=True))
         test_loss, test_acc = validate(model, test_loader, criterion, device=device)
         wandb.log({"test_loss": test_loss, "test_accuracy": test_acc})
+
+        # XAI analysis
+
+        # delete some unused object to reduce GRAM
+        del optimizer
+        del scheduler
+        del criterion
+        del train_loader
+        del valid_loader
+        model.zero_grad(set_to_none=True)
+        gc.collect()
+        if device == "cuda":
+            torch.cuda.empty_cache()
+            torch.cuda.ipc_collect()
 
         test_loader_batch_1 = torch.utils.data.DataLoader(
             test_loader.dataset, batch_size=1, shuffle=False
