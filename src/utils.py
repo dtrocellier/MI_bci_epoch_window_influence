@@ -153,6 +153,10 @@ def build_dataset(cfg):
     X_valid = (X_valid - mean.unsqueeze(0).unsqueeze(2)) / std.unsqueeze(0).unsqueeze(2)
     X_test = (X_test - mean.unsqueeze(0).unsqueeze(2)) / std.unsqueeze(0).unsqueeze(2)
 
+    # print
+    print(f"X_train: {X_train.shape}, X_valid: {X_valid.shape}, X_test: {X_test.shape}")
+    print(f"y_train: {y_train.shape}, y_valid: {y_valid.shape}, y_test: {y_test.shape}")
+
     train_loader = torch.utils.data.DataLoader(
         list(zip(torch.unbind(X_train), torch.unbind(y_train))),
         batch_size=cfg.model.batch_size,
@@ -273,6 +277,10 @@ def build_dataset_REVE(cfg):
     X_train = torch.clamp(X_train, min=-15 * std, max=15 * std)
     X_valid = torch.clamp(X_valid, min=-15 * std, max=15 * std)
     X_test = torch.clamp(X_test, min=-15 * std, max=15 * std)
+
+    # print
+    print(f"X_train: {X_train.shape}, X_valid: {X_valid.shape}, X_test: {X_test.shape}")
+    print(f"y_train: {y_train.shape}, y_valid: {y_valid.shape}, y_test: {y_test.shape}")
 
     # build datasets
 
@@ -574,13 +582,21 @@ def integrated_gradients_map(model, loader, device, class_index=1):
 
 
 def deeplift_map(model, loader, device, class_index=1):
-    return _captum_map(
-        model=model,
-        loader=loader,
-        device=device,
-        class_index=class_index,
-        method="deeplift",
-    )
+    was_deterministic = torch.are_deterministic_algorithms_enabled()
+
+    try:
+        torch.use_deterministic_algorithms(False)
+
+        return _captum_map(
+            model=model,
+            loader=loader,
+            device=device,
+            class_index=class_index,
+            method="deeplift",
+        )
+
+    finally:
+        torch.use_deterministic_algorithms(was_deterministic)
 
 
 def lrp_map(model, loader, device, class_index=1):
