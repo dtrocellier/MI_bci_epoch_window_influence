@@ -19,6 +19,7 @@ mkdir -p logs
 
 OMP_NUM_THREADS=20 MKL_NUM_THREADS=20 OPENBLAS_NUM_THREADS=20 \
 CUDA_VISIBLE_DEVICES=0 taskset -c 0-19 \
+uv run python -u main.py -m \
     dataset=Lee2019_MI \
     epoch_window=w_00_30 \
     model=REVE \
@@ -28,6 +29,7 @@ CUDA_VISIBLE_DEVICES=0 taskset -c 0-19 \
 
 OMP_NUM_THREADS=20 MKL_NUM_THREADS=20 OPENBLAS_NUM_THREADS=20 \
 CUDA_VISIBLE_DEVICES=1 taskset -c 20-39 \
+uv run python -u main.py -m \
     dataset=Lee2019_MI \
     epoch_window=w_05_35 \
     model=REVE \
