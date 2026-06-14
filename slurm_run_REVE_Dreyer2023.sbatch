@@ -23,7 +23,7 @@ uv run python main.py -m \
     dataset=Dreyer2023 \
     epoch_window=w_00_40 \
     model=REVE \
-    subject=$(seq -s, 1 87) \
+    subject=$(seq -s, 49 87) \
     > logs/REVE_dreyer_w_00_40_${SLURM_JOB_ID}.out \
     2> logs/REVE_dreyer_w_00_40_${SLURM_JOB_ID}.err &
 
@@ -33,7 +33,7 @@ uv run python main.py -m \
     dataset=Dreyer2023 \
     epoch_window=w_05_45 \
     model=REVE \
-    subject=$(seq -s, 1 87) \
+    subject=$(seq -s, 56 87) \
     > logs/REVE_dreyer_w_05_45_${SLURM_JOB_ID}.out \
     2> logs/REVE_dreyer_w_05_45_${SLURM_JOB_ID}.err &
 

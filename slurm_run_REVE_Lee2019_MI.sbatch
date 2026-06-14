@@ -23,18 +23,18 @@ uv run python -u main.py -m \
     dataset=Lee2019_MI \
     epoch_window=w_00_30 \
     model=REVE \
-    subject=$(seq -s, 1 54) \
+    subject=$(seq -s, 53 54) \
     > logs/REVE_lee_w_00_30_${SLURM_JOB_ID}.out \
     2> logs/REVE_lee_w_00_30_${SLURM_JOB_ID}.err &
 
-OMP_NUM_THREADS=20 MKL_NUM_THREADS=20 OPENBLAS_NUM_THREADS=20 \
-CUDA_VISIBLE_DEVICES=1 taskset -c 20-39 \
-uv run python -u main.py -m \
-    dataset=Lee2019_MI \
-    epoch_window=w_05_35 \
-    model=REVE \
-    subject=$(seq -s, 1 54) \
-    > logs/REVE_lee_w_05_35_${SLURM_JOB_ID}.out \
-    2> logs/REVE_lee_w_05_35_${SLURM_JOB_ID}.err &
+#OMP_NUM_THREADS=20 MKL_NUM_THREADS=20 OPENBLAS_NUM_THREADS=20 \
+#CUDA_VISIBLE_DEVICES=1 taskset -c 20-39 \
+#uv run python -u main.py -m \
+#    dataset=Lee2019_MI \
+#    epoch_window=w_05_35 \
+#    model=REVE \
+#    subject=$(seq -s, 1 54) \
+#    > logs/REVE_lee_w_05_35_${SLURM_JOB_ID}.out \
+#    2> logs/REVE_lee_w_05_35_${SLURM_JOB_ID}.err &
 
 wait
