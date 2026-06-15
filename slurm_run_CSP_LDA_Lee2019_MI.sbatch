@@ -18,7 +18,7 @@ mkdir -p logs
 
 OMP_NUM_THREADS=24 MKL_NUM_THREADS=24 OPENBLAS_NUM_THREADS=24 NUMEXPR_NUM_THREADS=24 \
 taskset -c 0-23 \
-uv run python -u run_csp_lda.py -m \
+uv run python -u main_csp_lda.py -m \
     dataset=Lee2019_MI \
     epoch_window=w_00_30 \
     model=CSP_LDA \
@@ -29,7 +29,7 @@ uv run python -u run_csp_lda.py -m \
 
 OMP_NUM_THREADS=24 MKL_NUM_THREADS=24 OPENBLAS_NUM_THREADS=24 NUMEXPR_NUM_THREADS=24 \
 taskset -c 24-47 \
-uv run python -u run_csp_lda.py -m \
+uv run python -u main_csp_lda.py -m \
     dataset=Lee2019_MI \
     epoch_window=w_05_35 \
     model=CSP_LDA \

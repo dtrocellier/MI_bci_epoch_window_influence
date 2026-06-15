@@ -31,4 +31,4 @@ path:
   attributions: "attributions"
   model: "models"
 
-debug: true
+debug: false
