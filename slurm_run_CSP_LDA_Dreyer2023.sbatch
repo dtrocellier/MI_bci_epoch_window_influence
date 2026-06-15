@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=CSP_LDA_Dreyer
-#SBATCH --constraint="bora"
+#SBATCH --constraint="suroit"
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=48
