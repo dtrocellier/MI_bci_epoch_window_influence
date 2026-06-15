@@ -19,7 +19,7 @@ mkdir -p logs
 
 OMP_NUM_THREADS=20 MKL_NUM_THREADS=20 OPENBLAS_NUM_THREADS=20 \
 CUDA_VISIBLE_DEVICES=0 taskset -c 0-19 \
-uv run python main.py -m \
+uv run python -u main.py -m \
     dataset=Dreyer2023 \
     epoch_window=w_00_40 \
     model=REVE \
@@ -29,7 +29,7 @@ uv run python main.py -m \
 
 OMP_NUM_THREADS=20 MKL_NUM_THREADS=20 OPENBLAS_NUM_THREADS=20 \
 CUDA_VISIBLE_DEVICES=1 taskset -c 20-39 \
-uv run python main.py -m \
+uv run python -u main.py -m \
     dataset=Dreyer2023 \
     epoch_window=w_05_45 \
     model=REVE \
