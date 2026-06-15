@@ -22,7 +22,7 @@ uv run python -u main_csp_lda.py -m \
     dataset=Lee2019_MI \
     epoch_window=w_00_30 \
     model=CSP_LDA \
-    subject=$(seq -s, 1 87) \
+    subject=$(seq -s, 1 54) \
     > logs/CSP_LDA_lee_w_00_40_${SLURM_JOB_ID}.out \
     2> logs/CSP_LDA_lee_w_00_40_${SLURM_JOB_ID}.err &
 
