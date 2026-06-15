@@ -30,3 +30,5 @@ path:
   results: "results"
   attributions: "attributions"
   model: "models"
+
+debug: true

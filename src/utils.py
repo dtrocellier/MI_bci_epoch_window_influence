@@ -456,10 +456,10 @@ def save_results(cfg, accuracy, fname="classification_results.csv"):
     epoch_window = cfg.epoch_window.name
 
     mask = (
-        (df["subject"] == subject)
-        & (df["dataset"] == dataset)
-        & (df["model"] == model_name)
-        & (df["epoch_window"] == epoch_window)
+            (df["subject"] == subject)
+            & (df["dataset"] == dataset)
+            & (df["model"] == model_name)
+            & (df["epoch_window"] == epoch_window)
     )
     if mask.sum() > 0:
         df.loc[mask, "accuracy"] = accuracy
@@ -775,3 +775,48 @@ def clear_cuda(model):
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
         torch.cuda.ipc_collect()
+
+
+class SmartSave:
+    def __init__(self, fname, columns):
+        self.fname = Path(fname)
+        self.fname.parent.mkdir(exist_ok=True, parents=True)
+        self.columns = columns
+
+    def _check_exists(self):
+        return self.fname.exists()
+
+    def __call__(self, columns_dict, data_dict):
+        if self._check_exists():
+            df = pd.read_csv(self.fname)
+        else:
+            df = pd.DataFrame(columns=self.columns)
+
+        mask = pd.Series(True, index=df.index)
+
+        for k, v in columns_dict.items():
+            mask &= df[k].astype(str) == str(v)
+
+        if mask.any():
+            for k, v in data_dict.items():
+                df.loc[mask, k] = v
+        else:
+            new_row = {**columns_dict, **data_dict}
+            df.loc[len(df)] = new_row
+
+        df.to_csv(self.fname, index=False)
+
+        return df
+
+
+def debug_warning():
+    RED = "\033[91m"
+    YELLOW = "\033[93m"
+    BOLD = "\033[1m"
+    RESET = "\033[0m"
+    print(f"{RED}{BOLD}")
+    print("=========================================================")
+    for m in range(15):
+        print("| THIS IS DEBUGGING MODE. DO NOT USE THIS IN PRODUCTION |")
+    print("=========================================================")
+    print(RESET)

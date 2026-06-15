@@ -7,7 +7,6 @@ batch_size: 256
 
 
 linear_probing:
-  #n_epochs: 1
   n_epochs: 200
   trainable: [ final_layer ]
   optimizer:
@@ -34,7 +33,6 @@ linear_probing:
 
 fine_tuning:
   n_epochs: 5
-  #n_epochs: 1
   trainable: all
   optimizer:
     module: torch.optim
