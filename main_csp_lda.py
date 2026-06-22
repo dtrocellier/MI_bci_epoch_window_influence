@@ -83,7 +83,7 @@ def run_within_user(cfg):
 
         model = Pipeline(
             [
-                ("CSP", CSP(n_components=cfg.model.n_components, log=True)),
+                ("CSP", CSP(n_components=cfg.model.n_components)),
                 ("LDA", LDA()),
             ]
         )
@@ -144,20 +144,12 @@ def run_cross_user(cfg):
     # remove test subject
     test_subject = cfg.subject
     subjects.remove(test_subject)
-
-    # split the dataset into train and valid
-    test_size = cfg.split.test_size
-    random_state = cfg.split.random_state
-    train_subjects, valid_subjects = train_test_split(
-        subjects, test_size=test_size, random_state=random_state
-    )
+    train_subjects = subjects.copy()
 
     if cfg.debug:
         train_subjects = train_subjects[:10]
-        valid_subjects = valid_subjects[:10]
 
     print("train_subjects: ", train_subjects)
-    print("valid_subjects: ", valid_subjects)
     print("test_subject: ", test_subject)
 
     # load training data
@@ -183,7 +175,7 @@ def run_cross_user(cfg):
 
     model = Pipeline(
         [
-            ("CSP", CSP(n_components=cfg.model.n_components, log=True)),
+            ("CSP", CSP(n_components=cfg.model.n_components)),
             ("LDA", LDA()),
         ]
     )
@@ -193,20 +185,13 @@ def run_cross_user(cfg):
     for session_idx in range(cfg.dataset.n_sessions):
         test_runs = cfg.dataset.runs.test
 
-        X_list, y_list = [], []
-        for run in test_runs:
-            X = np.load(
-                base / f"sub-{subject}_ses-{session_idx + 1}_run-{run}_X_{suffix}.npy"
-            )
-            y = np.load(
-                base / f"sub-{subject}_ses-{session_idx + 1}_run-{run}_y_{suffix}.npy"
-            )
-
-            X_list.append(X)
-            y_list.append(y)
-
-        test_X = np.concatenate(X_list)
-        test_y = np.concatenate(y_list)
+        test_X, test_y = load_runs(
+            runs=test_runs,
+            base=base,
+            session_idx=session_idx,
+            suffix=suffix,
+            subject=test_subject,
+        )
 
         print(f"test_X: {test_X.shape}, test_y: {test_y.shape}")
 
