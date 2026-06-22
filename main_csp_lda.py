@@ -90,6 +90,14 @@ def run_within_user(cfg):
 
         model.fit(train_X, train_y)
 
+        # save csp object
+        save_base = Path(cfg.path.attributions)
+        model["CSP"].save(
+            save_base
+            / f"CSP_LDA_within_{cfg.dataset.name}_{cfg.epoch_window.name}_{cfg.subject}.hdf5",
+            overwrite=True,
+        )
+
         preds = model.predict(test_X)
 
         acc = accuracy_score(test_y, preds)
@@ -181,6 +189,14 @@ def run_cross_user(cfg):
     )
 
     model.fit(train_X, train_y)
+
+    # save csp object
+    save_base = Path(cfg.path.attributions)
+    model["CSP"].save(
+        save_base
+        / f"CSP_LDA_cross_{cfg.dataset.name}_{cfg.epoch_window.name}_{test_subject}.hdf5",
+        overwrite=True,
+    )
 
     for session_idx in range(cfg.dataset.n_sessions):
         test_runs = cfg.dataset.runs.test

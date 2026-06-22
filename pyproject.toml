@@ -26,6 +26,7 @@ dependencies = [
     "ipykernel",
     "black",
     "captum",
+    "h5io",
 ]
 
 [tool.uv.sources]
