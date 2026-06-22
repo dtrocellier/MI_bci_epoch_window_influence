@@ -11,3 +11,4 @@ logs/
 /model/
 sandbox_ignored/
 conf_debug/
+*.hdf5
