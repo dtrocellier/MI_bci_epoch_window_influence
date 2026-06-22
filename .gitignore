@@ -12,3 +12,4 @@ logs/
 sandbox_ignored/
 conf_debug/
 *.hdf5
+figures/
