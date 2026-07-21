@@ -42,7 +42,7 @@ def export_epochs(dataset, dataset_name, save_base):
                     run_raw,
                     events=events,
                     event_id=event_id,
-                    tmin=-3,
+                    tmin=-3.5,
                     tmax=5.5,
                     baseline=None,
                 )
@@ -70,7 +70,8 @@ def load_yaml(files, base):
 if __name__ == "__main__":
 
     # DATASETS = ["Dreyer2023", "Lee2019_MI"]
-    DATASETS = ["Lee2019_MI"]
+    # DATASETS = ["Lee2019_MI"]
+    DATASETS = ["Dreyer2023"]
 
     for dataset_name in DATASETS:
         save_base = Path("Dataset") / "epochs" / dataset_name
