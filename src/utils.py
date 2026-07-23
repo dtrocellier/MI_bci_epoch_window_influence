@@ -342,6 +342,9 @@ def build_model(cfg):
     n_chans = cfg.dataset.n_channels
     n_outputs = cfg.dataset.n_classes
 
+    n_reject_channels = len(cfg.dataset.reject_channels)
+    n_chans -= n_reject_channels
+
     match cfg.model.name:
         case "Deep4Net":
             final_length = lastConvLengthDeep4Net(
