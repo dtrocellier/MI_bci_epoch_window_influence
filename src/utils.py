@@ -38,8 +38,21 @@ def set_seed(seed):
     torch.use_deterministic_algorithms(True)
 
 
+def reject_channels(X, ch_names, reject):
+    indices = np.where(~np.isin(np.array(ch_names), reject))[0]
+
+    # print(f"Rejecting {len(reject)} channels: {reject}")
+
+    return X[:, indices, :]
+
+
 def load_all_runs(subject, cfg):
     base = Path(cfg.dataset.path)
+
+    with open(base / "meta_data.json", "r") as f:
+        meta_data = json.load(f)
+
+    ch_names = meta_data["ch_names"]
 
     sfreq = cfg.model.sfreq
     tmin = cfg.epoch_window.tmin
@@ -56,6 +69,9 @@ def load_all_runs(subject, cfg):
             X = np.load(base / f"sub-{subject}_ses-{session}_run-{run}_X_{suffix}.npy")
             y = np.load(base / f"sub-{subject}_ses-{session}_run-{run}_y_{suffix}.npy")
 
+            if cfg.dataset.reject_channels is not None:
+                X = reject_channels(X, ch_names, cfg.dataset.reject_channels)
+
             X_list.append(X)
             y_list.append(y)
 
@@ -67,6 +83,11 @@ def load_all_runs(subject, cfg):
 
 def load_test_runs(subject, cfg):
     base = Path(cfg.dataset.path)
+
+    with open(base / "meta_data.json", "r") as f:
+        meta_data = json.load(f)
+
+    ch_names = meta_data["ch_names"]
 
     sfreq = cfg.model.sfreq
     tmin = cfg.epoch_window.tmin
@@ -82,6 +103,9 @@ def load_test_runs(subject, cfg):
         for run in runs:
             X = np.load(base / f"sub-{subject}_ses-{session}_run-{run}_X_{suffix}.npy")
             y = np.load(base / f"sub-{subject}_ses-{session}_run-{run}_y_{suffix}.npy")
+
+            if cfg.dataset.reject_channels is not None:
+                X = reject_channels(X, ch_names, cfg.dataset.reject_channels)
 
             X_list.append(X)
             y_list.append(y)

@@ -13,3 +13,4 @@ n_classes: 2
 input_window_samples:
   250: 750
   200: 600
+reject_channels: null

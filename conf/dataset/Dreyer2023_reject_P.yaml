@@ -13,4 +13,4 @@ n_classes: 2
 input_window_samples:
   250: 1000
   200: 800
-reject_channels: null
+reject_channels: [ "P3", "Pz", "P4" ]
