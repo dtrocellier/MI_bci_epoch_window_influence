@@ -1,4 +1,5 @@
 name: Dreyer2023
+sname: Deep4Net_woP
 subjects:
   n_subjects: 87
   exclude: [ 40, 59 ]

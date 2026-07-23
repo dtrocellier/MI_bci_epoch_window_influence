@@ -1,4 +1,5 @@
 name: Deep4Net
+sname: Deep4Net
 sfreq: 250
 func_build_dataset: src.utils.build_dataset
 pipeline: [ training ]

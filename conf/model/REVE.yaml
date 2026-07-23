@@ -1,4 +1,5 @@
 name: REVE
+sname: REVE
 sfreq: 200
 func_build_dataset: src.utils.build_dataset_REVE
 pipeline: [ linear_probing, fine_tuning ]
