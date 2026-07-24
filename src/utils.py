@@ -478,7 +478,7 @@ def save_results(cfg, accuracy, fname="classification_results.csv"):
         )
 
     subject = cfg.subject
-    dataset = cfg.dataset.name
+    dataset = cfg.dataset.sname
     model_name = cfg.model.sname
     epoch_window = cfg.epoch_window.name
 

@@ -86,7 +86,7 @@ def run(cfg):
             best_model_path = (
                     Path(cfg.path.model)
                     / cfg.model.sname
-                    / f"{cfg.model.sname}_{cfg.dataset.name}_{cfg.epoch_window.name}_{cfg.subject}_{save_name}.pt"
+                    / f"{cfg.model.sname}_{cfg.dataset.sname}_{cfg.epoch_window.name}_{cfg.subject}_{save_name}.pt"
             )
             best_model_path.parent.mkdir(exist_ok=True, parents=True)
 
@@ -188,13 +188,13 @@ def run(cfg):
         attribution_base.mkdir(exist_ok=True, parents=True)
         fname = (
                 attribution_base
-                / f"{cfg.model.sname}_{cfg.dataset.name}_{cfg.epoch_window.name}_{cfg.subject}.pt"
+                / f"{cfg.model.sname}_{cfg.dataset.sname}_{cfg.epoch_window.name}_{cfg.subject}.pt"
         )
         torch.save(attributions, fname)
 
         save_results(cfg, test_acc)
         print(
-            f"Done: {cfg.model.sname} | {cfg.dataset.name} | {cfg.epoch_window.name} | subject {cfg.subject} → {test_acc:.4f}"
+            f"Done: {cfg.model.sname} | {cfg.dataset.sname} | {cfg.epoch_window.name} | subject {cfg.subject} → {test_acc:.4f}"
         )
 
 
