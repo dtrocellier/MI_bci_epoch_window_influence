@@ -1,5 +1,5 @@
 name: Dreyer2023
-sname: Deep4Net_woP
+sname: Dreyer2023_wo_p
 subjects:
   n_subjects: 87
   exclude: [ 40, 59 ]

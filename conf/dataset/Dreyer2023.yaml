@@ -1,4 +1,5 @@
 name: Dreyer2023
+sname: Dreyer2023
 subjects:
   n_subjects: 87
   exclude: [ 40, 59 ]
