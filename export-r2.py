@@ -12,8 +12,8 @@ from src.proc import evoked_signed_square_r
 mne.set_log_level(verbose="CRITICAL")
 
 
-def get_bad_indices(epochs, tmin=0, tmax=5, threshold=150):
-    data = epochs.get_data(units="uV", tmin=tmin, tmax=tmax, picks="eeg")
+def get_bad_indices(epochs, tmin=0, tmax=5, threshold=150, picks="eeg"):
+    data = epochs.get_data(units="uV", tmin=tmin, tmax=tmax, picks=picks)
 
     I = np.where((np.abs(data) > threshold).any(axis=(1, 2)))[0]
 
@@ -40,6 +40,8 @@ def export_signed_r2(subject, dataset_name, save_base):
 
     epochs = mne.concatenate_epochs(epochs_list)
 
+    epochs.pick(picks="eeg")
+
     epochs.apply_baseline(baseline=(-0.8, -0.2))
 
     if dataset_name == "Lee2019_MI":
@@ -47,7 +49,7 @@ def export_signed_r2(subject, dataset_name, save_base):
     else:
         tmin, tmax = 0.5, 4.5
 
-    indices = get_bad_indices(epochs, tmin=tmin, tmax=tmax, threshold=150)
+    indices = get_bad_indices(epochs, tmin=tmin, tmax=tmax, threshold=150, picks="eeg")
 
     # epochs.drop_bad(reject={"eeg": 250e-6})
     epochs.drop(indices=indices)

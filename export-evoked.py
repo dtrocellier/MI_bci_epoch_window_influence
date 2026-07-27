@@ -9,8 +9,8 @@ import numpy as np
 mne.set_log_level(verbose="CRITICAL")
 
 
-def get_bad_indices(epochs, tmin=0, tmax=5, threshold=150):
-    data = epochs.get_data(units="uV", tmin=tmin, tmax=tmax, picks="eeg")
+def get_bad_indices(epochs, tmin=0, tmax=5, threshold=150, picks="eeg"):
+    data = epochs.get_data(units="uV", tmin=tmin, tmax=tmax, picks=picks)
 
     I = np.where((np.abs(data) > threshold).any(axis=(1, 2)))[0]
 
@@ -44,7 +44,7 @@ def export_evoked(subject, dataset_name, save_base):
     else:
         tmin, tmax = 0.5, 4.5
 
-    indices = get_bad_indices(epochs, tmin=tmin, tmax=tmax, threshold=150)
+    indices = get_bad_indices(epochs, tmin=tmin, tmax=tmax, threshold=150, picks="eeg")
 
     # epochs.drop_bad(reject={"eeg": 250e-6})
     epochs.drop(indices=indices)
@@ -55,17 +55,18 @@ def export_evoked(subject, dataset_name, save_base):
     left_hand = epochs["left_hand"]
     right_hand = epochs["right_hand"]
 
-    left_hand.average().save(save_base / f"sub-{subject}_left_hand.fif", overwrite=True)
+    left_hand.average(picks="all").save(save_base / f"sub-{subject}_left_hand.fif", overwrite=True)
 
-    right_hand.average().save(
+    right_hand.average(picks="all").save(
         save_base / f"sub-{subject}_right_hand.fif", overwrite=True
     )
 
 
 if __name__ == "__main__":
 
-    DATASETS = ["Dreyer2023", "Lee2019_MI"]
-    DATASETS = ["Lee2019_MI"]
+    # DATASETS = ["Dreyer2023", "Lee2019_MI"]
+    # DATASETS = ["Lee2019_MI"]
+    DATASETS = ["Dreyer2023"]
 
     for dataset_name in DATASETS:
         save_base = Path("Dataset") / "evoked" / dataset_name
@@ -80,7 +81,7 @@ if __name__ == "__main__":
             dataset.subject_list.remove(40)
             dataset.subject_list.remove(59)
 
-        Parallel(n_jobs=-5)(
+        Parallel(n_jobs=3)(
             delayed(export_evoked)(
                 subject=subject,
                 dataset_name=dataset_name,
@@ -88,16 +89,5 @@ if __name__ == "__main__":
             )
             for subject in dataset.subject_list
         )
-        exit()
-
-        """
-        for subject in dataset.subject_list:
-            export_evoked(
-                subject=subject,
-                dataset=dataset,
-                dataset_name=dataset_name,
-                save_base=save_base,
-            )
-        """
 
     print("\nDone preprocessing all windows.")

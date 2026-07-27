@@ -16,7 +16,7 @@ def preprocess_raw(raw):
     config = load_config()
     FILTER = config["filter"]
     raw.load_data()
-    raw.pick(picks="eeg")
+    # raw.pick(picks="eeg")
     raw.filter(l_freq=FILTER[0], h_freq=FILTER[1])
     return raw
 
@@ -49,7 +49,7 @@ def export_epochs(dataset, dataset_name, save_base):
 
                 if dataset_name == "Lee2019_MI":
                     epochs.load_data()
-                    epochs.resample(512)
+                    epochs.resample(512, n_jobs=-1)
 
                 epochs.save(
                     save_base
