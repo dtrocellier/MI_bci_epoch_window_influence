@@ -30,15 +30,17 @@ dependencies = [
     "statsmodels",
     "natsort",
 ]
+
 [tool.uv.sources]
-torch = { index = "pytorch-cu121", marker = "sys_platform == 'linux'" }
-torchvision = { index = "pytorch-cu121", marker = "sys_platform == 'linux'" }
-torchaudio = { index = "pytorch-cu121", marker = "sys_platform == 'linux'" }
+torch = { index = "pytorch-cu121", marker = "sys_platform == 'linux' or sys_platform == 'win32'" }
+torchvision = { index = "pytorch-cu121", marker = "sys_platform == 'linux' or sys_platform == 'win32'" }
+torchaudio = { index = "pytorch-cu121", marker = "sys_platform == 'linux' or sys_platform == 'win32'" }
 
 [tool.uv]
 environments = [
     "sys_platform == 'linux'",
     "sys_platform == 'darwin'",
+    "sys_platform == 'win32'",
 ]
 
 [[tool.uv.index]]

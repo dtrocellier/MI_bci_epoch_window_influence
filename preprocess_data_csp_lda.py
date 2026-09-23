@@ -27,10 +27,10 @@ def _split_data(X, y, block_size):
     I_1 = np.where(y == 1)[0]
 
     assert (
-        I_0.shape[0] == I_1.shape[0]
+            I_0.shape[0] == I_1.shape[0]
     ), "Number of trials for class 0 and class 1 should be equal"
     assert (
-        I_0.shape[0] % block_size == 0
+            I_0.shape[0] % block_size == 0
     ), f"Number of trials for class 0 and class 1 should be divisible by {block_size}"
 
     I_0 = I_0.reshape(-1, block_size)
@@ -179,8 +179,6 @@ if __name__ == "__main__":
 
     DATASETS, sfreq, EPOCH_WINDOWS = parse_config()
 
-    # DATASETS = ["Dreyer2023", "Lee2019_MI"]
-    # DATASETS = ["Lee2019_MI"]
     sfreq = None
 
     for dataset_name in DATASETS:
