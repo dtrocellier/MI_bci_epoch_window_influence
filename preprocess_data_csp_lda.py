@@ -13,7 +13,8 @@ mne.set_log_level(verbose="CRITICAL")
 
 
 def preprocess_raw(raw):
-    config = load_config()
+    with open(Path("conf") / "model" / "CSP_LDA.yaml", "r") as f:
+        config = yaml.safe_load(f)
     FILTER = config["filter"]
     raw.load_data()
     raw.pick(picks="eeg")
@@ -160,10 +161,9 @@ def parse_config():
     datasets = [dataset.split(".")[0] for dataset in datasets]
 
     # sfreq_list
-    files = os.listdir(conf_base / "model")
-    models = load_yaml(files, conf_base / "model")
-    sfreq_list = [model["sfreq"] for model in models if model["name"] != "CSP_LDA"]
-    sfreq_list = list(set(sfreq_list))
+    with open(Path("conf") / "model" / "CSP_LDA.yaml", "r") as f:
+        model = yaml.safe_load(f)
+    sfreq = model["sfreq"]
 
     # epoch_windows
     files = os.listdir(conf_base / "dataset")
@@ -172,15 +172,17 @@ def parse_config():
         f"{ds_yaml['name']}": ds_yaml["epoch_windows"] for ds_yaml in ds_yaml_list
     }
 
-    return datasets, sfreq_list, epoch_windows
+    return datasets, sfreq, epoch_windows
 
 
 if __name__ == "__main__":
 
-    DATASETS, SFREQ, EPOCH_WINDOWS = parse_config()
+    DATASETS, sfreq, EPOCH_WINDOWS = parse_config()
+
+    sfreq = None
 
     for dataset_name in DATASETS:
-        save_base = Path("Dataset") / dataset_name
+        save_base = Path("Dataset") / dataset_name / "CSP_LDA"
         save_base.mkdir(exist_ok=True, parents=True)
 
         module = importlib.import_module("moabb.datasets")
@@ -188,21 +190,20 @@ if __name__ == "__main__":
 
         export_meta_data(dataset, save_base)
 
-        for sfreq in SFREQ:
-            for tmin, tmax in EPOCH_WINDOWS[dataset_name]:
-                suffix = window_suffix(tmin, tmax, sfreq)
-                print(
-                    f"\n=== {dataset_name} Epoch window: tmin={tmin}s  tmax={tmax}s  (suffix: {suffix}) ==="
-                )
+        for tmin, tmax in EPOCH_WINDOWS[dataset_name]:
+            suffix = window_suffix(tmin, tmax, sfreq)
+            print(
+                f"\n=== {dataset_name} Epoch window: tmin={tmin}s  tmax={tmax}s  (suffix: {suffix}) ==="
+            )
 
-                export_epochs(
-                    dataset=dataset,
-                    dataset_name=dataset_name,
-                    tmin=tmin,
-                    tmax=tmax,
-                    sfreq=sfreq,
-                    save_base=save_base,
-                    suffix=suffix,
-                )
+            export_epochs(
+                dataset=dataset,
+                dataset_name=dataset_name,
+                tmin=tmin,
+                tmax=tmax,
+                sfreq=sfreq,
+                save_base=save_base,
+                suffix=suffix,
+            )
 
     print("\nDone preprocessing all windows.")

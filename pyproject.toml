@@ -1,0 +1,49 @@
+[project]
+name = "mi-bci-epoch-window-influence"
+version = "0.1.0"
+description = "EEG deep learning experiments"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+
+dependencies = [
+    "torch==2.5.1",
+    "torchaudio==2.5.1",
+    "torchvision==0.20.1",
+    "mne",
+    "braindecode[hub]",
+    "moabb==1.4.3",
+    "hydra-core",
+    "scipy",
+    "pandas<3.0",
+    "scikit-learn<1.8",
+    "matplotlib",
+    "seaborn",
+    "tqdm",
+    "pyarrow<21.0",
+    "wandb<0.23",
+    "h5py<3.15",
+    "jupyter",
+    "ipykernel",
+    "black",
+    "captum",
+    "h5io",
+    "statsmodels",
+    "natsort",
+]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu121", marker = "sys_platform == 'linux' or sys_platform == 'win32'" }
+torchvision = { index = "pytorch-cu121", marker = "sys_platform == 'linux' or sys_platform == 'win32'" }
+torchaudio = { index = "pytorch-cu121", marker = "sys_platform == 'linux' or sys_platform == 'win32'" }
+
+[tool.uv]
+environments = [
+    "sys_platform == 'linux'",
+    "sys_platform == 'darwin'",
+    "sys_platform == 'win32'",
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu121"
+url = "https://download.pytorch.org/whl/cu121"
+explicit = true

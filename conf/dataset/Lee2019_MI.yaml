@@ -1,0 +1,17 @@
+name: Lee2019_MI
+sname: Lee2019_MI
+subjects:
+  n_subjects: 54
+  exclude: null
+path: ./Dataset/Lee2019_MI
+n_sessions: 2
+runs:
+  train: [ 1, 2, 3, 4, 5 ]
+  test: [ 6, 7, 8, 9, 10 ]
+epoch_windows: [ [ 0, 3 ], [ 0.5, 3.5 ] ]
+n_channels: 62
+n_classes: 2
+input_window_samples:
+  250: 750
+  200: 600
+reject_channels: null

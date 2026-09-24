@@ -1,0 +1,17 @@
+name: Dreyer2023
+sname: Dreyer2023_wo_p
+subjects:
+  n_subjects: 87
+  exclude: [ 40, 59 ]
+path: ./Dataset/Dreyer2023
+n_sessions: 1
+runs:
+  train: [ 1,2 ]
+  test: [ 3,4,5,6 ]
+epoch_windows: [ [ 0, 4 ], [ 0.5, 4.5 ] ]
+n_channels: 27
+n_classes: 2
+input_window_samples:
+  250: 1000
+  200: 800
+reject_channels: [ "P3", "Pz", "P4" ]

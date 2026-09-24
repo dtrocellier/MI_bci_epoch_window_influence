@@ -1,7 +1,15 @@
 wandb/
 Dataset/
-model/
-Results/
+results/
 __pycache__/
 *.pyc
 .idea/
+*.pt
+outputs/
+multirun/
+logs/
+/model/
+sandbox_ignored/
+conf_debug/
+*.hdf5
+figures/
