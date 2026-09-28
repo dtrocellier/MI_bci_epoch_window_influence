@@ -159,3 +159,8 @@ uv run python -u main_csp_lda.py -m \
     model=CSP_LDA \
     subject=$(seq -s, 1 54)
 ```
+
+# License
+
+This repository is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0).
+See the [LICENSE](LICENSE) file for details.
